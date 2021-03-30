@@ -11,60 +11,91 @@
 #Binomial GLMM:
 #  https://aosmith.rbind.io/2020/08/20/simulate-binomial-glmm/
 
-###APHID DENSITY#############################################################################
+# FOR DREDGE:
+options(na.action = "na.fail")
+
+### APHID DENSITY#############################################################################
 glimpse(Aphid_density)#check data structure
+hist(Aphid_density$N_aphid.mm) 
 
-## Mauds additions: 
-library(lmerTest) # gives you p-values for each variable in the LMER models via Satterthwaite's degrees of freedom method
+#---> Data does not look normal, so I suggest a transformation, which you can explore here:
+boxcox(N_aphid.mm~date_s+meanAnt.mean_s+Seal_500_s+
+         date_s:meanAnt.mean_s+ 
+         date_s:Seal_500_s+
+         meanAnt.mean_s:Seal_500_s, 
+       data=Aphid_density,
+       lambda = seq(-0.05, 0.45, len = 20))
+#---> the lambda value is close to 0.5 => square root transformation 
+hist(sqrt(Aphid_density$N_aphid.mm)) #square root transformation looks better
 
 
-#Fit the model:
-#~date+N_ant+Seal_500+date:N_ant+date:Seal_500+N_ant:Seal_500
-#-->LME
-Aph<-lmer(N_aphid.mm~date_s+meanAnt.mean_s+Seal_500_s+date_s:meanAnt.mean_s+date_s:Seal_500_s+
-             meanAnt.mean_s:Seal_500_s+(1|plantPop), data=Aphid_density)
+# Fit the model with square root transformation:
+Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
+            #date_s:meanAnt.mean_s + #do we need this interaction ?
+            date_s:Seal_500_s +
+            meanAnt.mean_s:Seal_500_s + 
+                             (1|plantPop),
+                           data=Aphid_density)
 
 #Look at diagnostics:
 plot(Aph)
 qqnorm(resid(Aph))
 hist(residuals(Aph)) # I like to look at the histogram as well :)
+res <- DHARMa::simulateResiduals(Aph) # using package DHARMa for testing residuals
+plot(res) # Looks all good, no dignificant deviations anywhere
 
 #Look at the model summary:
-display(Aph)
-
 # MAUD: function "summary" Gives you more interesting stuff with package lmerTest:
 summary(Aph) # P values are consistent with the partial R2 confidence intervals below
-ranova(Aph) # Shows that the random effect does not improve your model much
+lmerTest::ranova(Aph) # Shows that the random effect does not improve your model much... (not essential, just FYI)
 
 #Calculate the marginal (= fixed effect) and conditional (= fixed + random effects) r2 values:
 r.squaredGLMM(Aph)
-#########marginal:0.5276438
-#########conditional:0.6599617
+#########marginal:0.5276438    ----> now 0.467 with square root transformation
+#########conditional:0.6599617 ----> now 0.691 with square root transformation
 
 #Calculate partial R2 for each predictor (only fixed effects):
 r2beta(Aph, method="nsj")
 
+# represent coefs with confidence intervals
+coefs <- broom.mixed::tidy(Aph, conf.int = TRUE)
+dw <- dwplot(Aph,by_2sd=FALSE) 
+print(dw+geom_vline(xintercept=0,lty=2))
 
-###Ant ATTENDANCE############################################################################
+# dredge + model avg to check if the same variables come out:
+d.Aph <- dredge(Aph, rank = "AICc", REML = FALSE)
+model.avg(d.Aph, subset = delta <2) # all variables kept in best 3 models
+
+### Ant ATTENDANCE############################################################################
 glimpse(Ant_attendance)#check data structure
+hist(Ant_attendance$AntperAphid.mean)
 
-#Fit the model:
-#=log-transformed response
-#~date+N_aphid+Seal_500+date:N_aphid+date:Seal_500+N_aphid:Seal_500
-#-->LME
+#---> Data does not look normal, so I suggest a transformation, which you can explore here:
+boxcox(AntperAphid.mean ~ date_s+N_aphid_s+Seal_500_s+
+         date_s:N_aphid_s+date_s:Seal_500_s+
+         N_aphid_s:Seal_500_s,
+       data=Ant_attendance,
+       lambda = seq(-0.05, 0.45, len = 20))
+#---> the lambda value is close to O => log transformation 
+hist(log(Ant_attendance$AntperAphid.mean)) #log transformation looks only vaguely better
 
-AntAtt<-lmer(log(AntperAphid.mean)~date_s+N_aphid_s+Seal_500_s+date_s:N_aphid_s+date_s:Seal_500_s+
+# Fit LMER with log:
+AntAtt<-lmer(log(AntperAphid.mean)~ date_s+N_aphid_s+Seal_500_s+
+               date_s:N_aphid_s+date_s:Seal_500_s+
             N_aphid_s:Seal_500_s+(1|plantPop), data=Ant_attendance)
 
 #Look at diagnostics:
 plot(AntAtt)
 qqnorm(resid(AntAtt))
 res <- simulateResiduals(AntAtt)
-plot(res)
+plot(res) # ok but still a slight curved trend in residuals
 
 #Look at the model summary:
-display(AntAtt)
 summary(AntAtt) # not the same results as the partial R2 here...
+# represent coefs with confidence intervals
+coefs <- broom.mixed::tidy(AntAtt, conf.int = TRUE)
+dw <- dwplot(AntAtt,by_2sd=FALSE) 
+print(dw+geom_vline(xintercept=0,lty=2))
 
 #Calculate the marginal (= fixed effect) and conditional (= fixed + random effects) r2 values:
 r.squaredGLMM(AntAtt)
@@ -74,7 +105,7 @@ r.squaredGLMM(AntAtt)
 #Calculate partial R2 for each predictor (only fixed effects):
 r2beta(AntAtt, method="nsj")
 
-###TENDING TIME#############################################################################
+### TENDING TIME#############################################################################
 glimpse(Tending_Time)#check data structure
 
 hist(Tending_Time$aphid_IA.sum)
@@ -134,7 +165,7 @@ model.sel(Tend, Tend.betareg)
 
 # Conclusion: use the output form betaregression.
 
-###GROUP DEFENSE#############################################################################
+### GROUP DEFENSE#############################################################################
 glimpse(Group_reaction)#check data structure
 hist(Group_reaction$MAXREACT_prop)
 
@@ -185,7 +216,7 @@ r.squaredGLMM(GroupDef.binom)
 #########conditional: 0.12
 
 
-###Ant AGGRESSIVITY###########################################################################
+### Ant AGGRESSIVITY###########################################################################
 glimpse(Ant_aggressivity) #check data structure
 hist(Ant_aggressivity$aggr_score)
 
