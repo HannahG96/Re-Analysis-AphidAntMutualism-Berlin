@@ -19,7 +19,7 @@ expVar$plot.simple<-as.factor(expVar$plot.simple)#factorize plot category
 ######################
 #Check for correlation of predictors:
 ggpairs(expVar[,c("date","mean.temp","N_aphid","meanAnt.mean","Seal_500","plantStade")])
-#continuous/continuous variables-->Pearson´s correlation coefficient
+#continuous/continuous variables-->Pearson?s correlation coefficient
 cor(expVar[, c("meanAnt.mean", "N_aphid", "mean.temp", "Seal_500")], method="pearson")
 #factor/continuous variables-->Spearman's rank correlation test (??)
 
@@ -43,8 +43,10 @@ Group_reaction<-merge(expVar, Exp3a[, c("plot.simple", "plant", "date", "N_ant",
 Ant_aggressivity<-merge(expVar, Exp3b[, c("plot.simple", "plant", "date","context","aggr_score")],
                         all=F)
 Ant_aggressivity$context<-as.factor(Ant_aggressivity$context)
+
+
 ###6.PROPORTION OF PARASITISM 
-Parasitism<-merge(expVar,Met_plant[,c("plot.simple", "plant", "date", "Prop_paras")],all=T)
+Parasitism<-merge(expVar,Met_plant[,c("plot.simple", "plant", "date", "Prop_paras", "N_parasitised","N_not_parasitised" )],all=T)
 #-->add mean aggressivity score (entire ant colony) + tending time (caretaker ants) as additional
 #variables of ant behaviour to explain parasitism within aphid colonies + standardize these variables
 #Note: better pick mean aggressivity score of aphid tending ant (???)

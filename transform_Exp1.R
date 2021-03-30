@@ -12,9 +12,10 @@ Exp1<-Exp1[,-24]
 Exp1<-unique(merge(Exp1,Exp2[,c("plot.simple","plot","plant","date","l")], all=TRUE))#add length of focal zone info
 Exp1$indv_cat<-NA
 Exp1$l<-Exp1$l / 10 #change mm in cm
+
 for(i in 1:nrow(Exp1)){
   num<-Exp1[i,"l"]- Exp1[i,"L_act"]
-  if(is.na(num)==T && Exp1[i,"left"]==0)next
+  if(is.na(num)==T && Exp1[i,"left"]==0) next  
   if(Exp1[i,"act_c"]==1 && num > 0 && Exp1[i,"left"]==0) {Exp1[i,"indv_cat"]<-"caretaker"}
   if(Exp1[i,"act_c"]==0 && num > 0 && Exp1[i,"left"]==0){Exp1[i,"indv_cat"]<-"scouts"}
   if(num < 0 && Exp1[i,"left"]==0){Exp1[i,"indv_cat"]<-"scouts"}
