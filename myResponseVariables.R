@@ -19,7 +19,7 @@ expVar$plot.simple<-as.factor(expVar$plot.simple)#factorize plot category
 ######################
 #Check for correlation of predictors:
 ggpairs(expVar[,c("date","mean.temp","N_aphid","meanAnt.mean","Seal_500","plantStade")])
-#continuous/continuous variables-->Pearson´s correlation coefficient
+#continuous/continuous variables-->Pearson?s correlation coefficient
 cor(expVar[, c("meanAnt.mean", "N_aphid", "mean.temp", "Seal_500")], method="pearson")
 #factor/continuous variables-->Spearman's rank correlation test (??)
 
@@ -43,8 +43,35 @@ Group_reaction<-merge(expVar, Exp3a[, c("plot.simple", "plant", "date", "N_ant",
 Ant_aggressivity<-merge(expVar, Exp3b[, c("plot.simple", "plant", "date","context","aggr_score")],
                         all=F)
 Ant_aggressivity$context<-as.factor(Ant_aggressivity$context)
-###6.PROPORTION OF PARASITISM 
-Parasitism<-merge(expVar,Met_plant[,c("plot.simple", "plant", "date", "Prop_paras")],all=T)
+
+
+### 6.PROPORTION OF PARASITISM ####
+
+#---> MAUD ADDITION : get the actual number of parasitised, to fit a nice binomial:
+
+# simplify the plot name:
+library(stringr)
+Met_plant$plot.simple = stringr::str_remove(Met_plant$plot, pattern = "_ext")
+Met_plant$plot.simple = stringr::str_replace(Met_plant$plot.simple,
+                                             pattern = "551", replacement = "55")
+Met_plant$plot.simple = stringr::str_replace(Met_plant$plot.simple,
+                                             pattern = "552", replacement = "55")
+
+
+# add total number of aphid per plant:
+Met_plant <-  merge(x = Met_plant, 
+                    y = Aphid_density[,c("plot.simple","date","plant","N_aphid")],
+                    by.x = c("plot.simple","date","plant"),
+                    by.y = c("plot.simple","date","plant"),
+                    all = TRUE) 
+
+# calculate a rounded number for number of parasitised:
+Met_plant$N_parasitised <- ceiling(Met_plant$N_aphid * Met_plant$Prop_paras)
+Met_plant$N_not_parasitised<- Met_plant$N_aphid - Met_plant$N_parasitised
+
+# Create table for parasitism:
+Parasitism<-merge(expVar,Met_plant[,c("plot.simple", "plant", "date", "Prop_paras", "N_parasitised","N_not_parasitised" )],all=T)
+
 #-->add mean aggressivity score (entire ant colony) + tending time (caretaker ants) as additional
 #variables of ant behaviour to explain parasitism within aphid colonies + standardize these variables
 #Note: better pick mean aggressivity score of aphid tending ant (???)
@@ -55,5 +82,5 @@ Ant_bhv=mutate_at(Ant_bhv, vars(aphid_IA.sum, aggr_score.mean), funs(s = as.nume
 Parasitism<-merge(Ant_bhv, Parasitism, all=T)
 
 ###Remove all object that are not needed anymore=clean workspace
-rm.all.but(keep=c("scriptwd", "modelresultswd", "Aphid_density", "Parasitism", "Ant_attendance",
-                  "Tending_Time", "Group_reaction", "Ant_aggressivity"))
+# rm.all.but(keep=c("scriptwd", "modelresultswd", "Aphid_density", "Parasitism", "Ant_attendance",
+#                   "Tending_Time", "Group_reaction", "Ant_aggressivity"))

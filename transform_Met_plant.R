@@ -14,6 +14,3 @@ Met_plant<-Met_plant[,-c(8:11)]
 
 ###Convert %parasitism in proportion of parasitism (latter will be the response variable):
 Met_plant$Prop_paras<-Met_plant$prop_paras / 100
-
-
-

@@ -1,11 +1,14 @@
 #MASTER SCRIPT
 ######################################################
-#data-working directory:
-datawd<-"C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis/data"
-#scripts-working directory:
-scriptwd<-"C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis/scripts"
-#model results-working directory:
-modelresultswd<-"C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis/model results"
+
+# If your files are well organised, you only need one working directory :) 
+# Set all the paths relative to this one in your scripts. this is good practice as it means you can transport your directory anywhere, or share it with anyone, and all the relative paths will still work. 
+# Even better: create an Rstudio project from the repository, then you don't need to set the WD at all! It is automatically set as the root directory of the project (ie of your github repository). That's what i always do.
+
+# If you are not using an Rproject :
+#working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis"
+#setwd(working_dir)
+
 
 #LOAD PACKAGES
 library("data.table")#import data as data frame
@@ -21,13 +24,20 @@ library("r2glmm")#partial Rsquared for fixed effects
 library("xlsx")#export R-tables to excel
 library("ggnewscale")#extended color scales in ggplot
 
+# added by maud:
+library(stringr) # for all types of handy string modifications
+library(lmerTest) #gives you p-values for LMER models via Satterthwaite's method
+library(glmmTMB) # best package to fit the GLMMs
+library(DHARMa)  # cool package for testing residuals of model
+library(broom.mixed) # format the table of model coefficients and get CI
+library(dotwhisker) # represent the model coefficients with CI
 
-setwd(scriptwd)
+#setwd(scriptwd)
 
 #IMPORT DATA
 source("import data.R")
 
-setwd(scriptwd)
+#setwd(scriptwd)
 
 #FORMAT DATA
 source("transform_General_plot.R")
@@ -40,6 +50,6 @@ source("transform_Exp3b.R")
 source("myResponseVariables.R")
 
 #ANALYSE DATA
-source("models.R")
+# source("models.R")
 
 #FIGURES

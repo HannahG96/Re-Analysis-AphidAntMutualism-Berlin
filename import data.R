@@ -1,28 +1,28 @@
 #IMPORT DATA
 
 ###Set working directory:
-setwd(datawd)
+#setwd(datawd)
 
 ###Load data files:
 #plot metadata
-General_plot <-fread(file = "General_plot.csv", na.strings = "kA", dec = "," , data.table = FALSE)
-Met_plot_date<-fread(file="Met_plot_date.csv",na.strings ="kA", dec = ",", data.table = FALSE)
-Met_plant <- fread (file = "Met_plant.csv", na.strings = "kA", dec = ",", data.table = FALSE)
+General_plot <-fread(file = "data/General_plot.csv", na.strings = "kA", dec = "," , data.table = FALSE)
+Met_plot_date<-fread(file="data/Met_plot_date.csv",na.strings ="kA", dec = ",", data.table = FALSE)
+Met_plant <- fread (file = "data/Met_plant.csv", na.strings = "kA", dec = ",", data.table = FALSE)
 
 #individual behaviour
-Exp1 <-fread(file = "Exp1.csv", na.strings = "kA", dec = ",", data.table = FALSE)
+Exp1 <-fread(file = "data/Exp1.csv", na.strings = "kA", dec = ",", data.table = FALSE)
 
 #ant / aphid numbers
-Exp2 <-fread(file = "Exp2.csv", na.strings = "kA", dec = "," , data.table = FALSE)
+Exp2 <-fread(file = "data/Exp2.csv", na.strings = "kA", dec = "," , data.table = FALSE)
 
 #group aggressivity
-Exp3a <-fread(file = "Exp3a.csv", na.strings = "kA", dec = "," , data.table = FALSE)
+Exp3a <-fread(file = "data/Exp3a.csv", na.strings = "kA", dec = "," , data.table = FALSE)
 
 #individual aggressivity
-Exp3b <-fread(file = "Exp3b.csv", na.strings = "kA", dec = "," , data.table = FALSE)
+Exp3b <-fread(file = "data/Exp3b.csv", na.strings = "kA", dec = "," , data.table = FALSE)
 
 #behavioural sequences
-activ_seq_raw <-fread(file="activity sequence.csv", data.table = FALSE, check.names = TRUE)
+activ_seq_raw <-fread(file="data/activity sequence.csv", data.table = FALSE, check.names = TRUE)
   #correct some typing errors that I noted now:
   activ_seq_raw[which(activ_seq_raw[,1]=="E43"),1]<-"E44"#record name as which it appears in Exp1 table
   activ_seq_raw[which(activ_seq_raw[,1]=="E5"),1]<-"E4" #record name as which it appears in Exp1 table
@@ -38,7 +38,7 @@ colnames(data[[i]])[1]<-"plot.simple"
 assign(data_names[i], data[[i]])}
 
 ###Load the data about the plots given by CityScapeLabs:
-GivenMeta_plots <-fread(file="GivenMeta_plots.csv", na.strings = "kA", dec = ",", data.table = FALSE)
+GivenMeta_plots <-fread(file="data/GivenMeta_plots.csv", na.strings = "kA", dec = ",", data.table = FALSE)
 ###Extract relevant variables from the data
 MyGivenMeta_plots <- GivenMeta_plots[c(9,10,11,21,23,40,48,50,51),
                                      c("ID_plot","Long","Lat","Age","Seal_500","Pop_500")]
