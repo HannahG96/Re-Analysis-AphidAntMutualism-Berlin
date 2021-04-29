@@ -1,8 +1,5 @@
 #IMPORT DATA
 
-###Set working directory:
-#setwd(datawd)
-
 ###Load data files:
 #plot metadata
 General_plot <-fread(file = "data/General_plot.csv", na.strings = "kA", dec = "," , data.table = FALSE)
