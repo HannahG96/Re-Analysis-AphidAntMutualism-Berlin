@@ -411,7 +411,18 @@ reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s +
                 N_aphid_s:Seal_500_s + 
                 (1|plantPop/date),
               family = binomial,
-              data=na.omit(Ant_aggressivity))
+              data=Ant_aggressivity) 
+## >>>>>> !!! using na.omit creates convergence problems, and it is not necessary here
+
+reaction.binom<-glmmTMB(reaction ~  context + date_s + N_aphid_s + Seal_500_s + 
+                          context:date_s + context:N_aphid_s + context:Seal_500_s +
+                          date_s:N_aphid_s + date_s:Seal_500_s +
+                          N_aphid_s:Seal_500_s + 
+                          (1|plot.simple/plant/date),
+                        family = binomial,
+                        data=Ant_aggressivity) 
+## Sealing becomes no longer signif, although mean effect is the same.
+
 
 # Test residuals:
 plot(res <- simulateResiduals(reaction.binom )) # Not too bad looking even if slight trend
@@ -521,7 +532,7 @@ Paras <- glmmTMB(cbind(N_parasitised, N_not_parasitised) ~
                    date_s:Seal_500_s + date_s:aphid_IA.sum_s +
                    date_s:aggr_score.mean_s +
                    Seal_500_s:aphid_IA.sum_s + Seal_500_s:aggr_score.mean_s +
-                   (1|plantPop),
+                   (1|plantPop/date),
                  data = tmp,
                  family = betabinomial)
 
