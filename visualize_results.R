@@ -1,60 +1,56 @@
 ##########VISUALIZE RESULTS#############
+#library("RColorBrewer")
+library("viridis")
 
 #Visualize the task allocation of ant colonies along the Seal_500-axis
 #at plant level
 
-Tasks.plant<-merge(expVar[,c("plot.simple", "plant", "Seal_500")], Tasks.plant[ ,
-                                                                   c("plot.simple", "plant", "aphid_IA.sum",
-                                                                     "move.sum","walk.flower.sum","walk.leave.sum", 
-                                                                     "inactive.sum", "selfclean.sum", "eatpollen.sum",
-                                                                     "stretching.sum", "ant_IA.sum",
-                                                                     "uncategorized.sum", "SUM")])
+Tasks.plot<-merge(expVar[,c("plot.simple", "Seal_500")], Tasks.plot[ ,
+                                                                   c("plot.simple", "aphid_IA.sum",
+                                                                     "move.sum", "stand.sum", "ant_IA.sum", 
+                                                                     "other.sum", "SUM")])
+Tasks.plot<-unique(Tasks.plot)
 
-colnames(Tasks.plant)<-c("plot.simple", "plant", "Seal_500", "tending", "moving", "flowerwalks", "leavewalks",
-                   "standing", "selfcleaning", "polleneating", "stretching", "antinteraction",
-                   "uncategorized behaviour","SUM")
-Tasks.plant<-unique(Tasks.plant)
+colnames(Tasks.plot)<-c("plot.simple", "Seal_500", "tending", "moving", 
+                   "standing", "antinteraction", "other behaviour","SUM")
 
-plotTasks<-as.data.frame(matrix(rep(NA), nrow=0, ncol=5, dimnames=list(NULL, c("plot.simple",
-                                                                               "plant", "Seal_500",
+
+plotTasks<-as.data.frame(matrix(rep(NA), nrow=0, ncol=4, dimnames=list(NULL, c("plot.simple",
+                                                                               "Seal_500",
                                                                                "Behaviour", "Time_prop"))))
-for(i in 1:nrow(Tasks.plant)){
-  a<-unname(Tasks.plant[i,c(4:13)])
+for(i in 1:nrow(Tasks.plot)){
+  a<-unname(Tasks.plot[i,c(3:7)])
   for(j in 1:length(a)){
-    aa<-c(unname(Tasks.plant[i,c(1:3)]), colnames(Tasks.plant)[3+j], a[j] ) 
+    aa<-c(unname(Tasks.plot[i,c(1:2)]), colnames(Tasks.plot)[2+j], a[j] ) 
     plotTasks<-rbind(plotTasks, aa)
-    colnames(plotTasks)<-c("plot.simple",
-                           "plant", "Seal_500",
+    colnames(plotTasks)<-c("plot.simple","Seal_500",
                            "Behaviour", "Time_prop")} }
 
-urb_levels<-unique(plotTasks[,"Seal_500"])[order(unique(plotTasks[,"Seal_500"]), decreasing=FALSE)]
-plotTasks$Seal_500<-factor(plotTasks$Seal_500, levels=urb_levels)
-plotTasks$Behaviour<-factor(plotTasks$Behaviour, levels=c("uncategorized behaviour","polleneating", "stretching","selfcleaning", 
-                                                          "antinteraction","flowerwalks","leavewalks",
-                                                          "moving","standing","tending"))
+#urb_levels<-unique(plotTasks[,"Seal_500"])[order(unique(plotTasks[,"Seal_500"]), decreasing=FALSE)]
+#plotTasks$Seal_500<-factor(plotTasks$Seal_500, levels=urb_levels)
+plotTasks$Behaviour<-factor(plotTasks$Behaviour, levels=c("other behaviour",
+                                                          "antinteraction", "standing",
+                                                          "moving", "tending"))
 
 
 
 
-ggplot(plotTasks, aes(fill=Behaviour, y=Time_prop, x=plant))+ 
+ggplot(plotTasks, aes(fill=Behaviour, y=Time_prop, x=Seal_500))+ 
   theme_light()+
   geom_bar(position = "stack", stat="identity")+
-  scale_fill_manual(values=c("lemonchiffon3", "yellow", "limegreen",
-                             "gold3", "orangered", "turquoise", "skyblue3",
-                             "royalblue", "mediumvioletred", "hotpink"),
-                    breaks=c("uncategorized behaviour","polleneating", "stretching",
-                             "selfcleaning", "antinteraction","flowerwalks","leavewalks",
-                             "moving","standing","tending"))+
+  scale_fill_manual(values=c("yellow", "limegreen",
+                             "orangered", "turquoise", "hotpink"),
+                    breaks=c("other behaviour",
+                             "antinteraction", "standing",
+                             "moving", "tending"))+
   ylab("Time proportion")+
-  xlab("Plant")+
-  ggtitle("Time allocated in different behaviours averaged for each ant colony",
+  xlab("% of Sealing")+
+  ggtitle("Time allocated in different behaviours averaged for each plot",
           subtitle="Left to right: low to high level of sealing (in %)")+
   theme(axis.text.x = element_text(angle = 45, size=6, vjust = 1, hjust=1),
         legend.title=element_text(face="bold")
         #plot.title = element_text(hjust = 0.25, vjust=0, size=10, face="bold")
-        )+
-  facet_grid(~Seal_500)
-
+        )
 
 
 ###########
@@ -63,22 +59,8 @@ ggplot(plotTasks, aes(fill=Behaviour, y=Time_prop, x=plant))+
 ######VISUALIZE ANT AGGRESSIVITY
 
 #Prepare data:
+source("Figures.R")
 
-#-->proportion of aggressive reacting ants
-a<-Ant_aggressivity
-a$ant<-1
-plotAggressivity<-summaryBy(formula=reaction+ant~Seal_500+plot.simple+plant+date+context, 
-                            data=a,FUN=sum)
-plotAggressivity$prop_reaction<-plotAggressivity$reaction.sum / plotAggressivity$ant.sum 
-
-#categorical Sealing variable
-plotAggressivity$Sealing_level<-NA
-plotAggressivity[which(plotAggressivity[,"Seal_500"]>40), "Sealing_level"]<-"[>40%]"
-plotAggressivity[which(plotAggressivity[,"Seal_500"]<40), "Sealing_level"]<-"[20-40%]"
-plotAggressivity[which(plotAggressivity[,"Seal_500"]<20), "Sealing_level"]<-"[<20%]"
-plotAggressivity$Sealing_level<-factor(plotAggressivity$Sealing_level, levels=c("[<20%]","[20-40%]","[>40%]"))
-
-#Produce figure:
 
 ggplot(plotAggressivity, aes(x=date, y=prop_reaction))+
   theme_light()+
@@ -122,25 +104,36 @@ ggplot(plotAggressivity, aes(x=date, y=prop_reaction))+
 
 
 ######VISUALIZE APHID NUMBER AND ANT ATTENDANCE
-#1.aphid number over time
-max(Ant_attendance$N_aphid)#264
-max(Ant_attendance$meanAnt.mean)#48.40833
-y_ext<-270/50#5.4=extension coefficient for ant number y-axis
-Ant_attendance$N_ant.plot<-Ant_attendance$meanAnt.mean*y_ext
+#1.aphid number over time including extinctions
+#import aphid extinction data:
+Aphids<-fread(file = "data/aphid_extinctions.csv", na.strings = "kA", dec = "," , data.table = FALSE)
+Aphids$date<-as.Date(Aphids$date, format = "%d.%m.%Y") 
+Aphids<-rbind(Aphids, Ant_attendance[, c("plot.simple", "plant", "date", "N_aphid")])
+Aphids<-merge(Aphids, General_plot[, c("plot.simple", "Seal_500")], by="plot.simple", all=T)
+Aphids<-unique(Aphids)
+Aphids$Seal_500<-as.numeric(Aphids$Seal_500)
 
-urb_levels<-unique(Ant_attendance[,"Seal_500"])[order(unique(Ant_attendance[,"Seal_500"]), decreasing=T)]
-Ant_attendance$Seal_500.col<-factor(Ant_attendance$Seal_500, levels=urb_levels)
-cols<-c("black","firebrick","orangered2","darkorange","gold3","greenyellow","greenyellow",
-        "limegreen", "forestgreen")
 
-urb_levels<-unique(Ant_attendance[,"Seal_500"])[order(unique(Ant_attendance[,"Seal_500"]), decreasing=F)]
-Ant_attendance$Seal_500<-factor(Ant_attendance$Seal_500, levels=urb_levels)
+#urb_levels<-unique(Aphids[,"Seal_500"])[order(unique(Aphids[,"Seal_500"]), decreasing=T)]
+#Aphids$Seal_500.col<-factor(Aphids$Seal_500, levels=urb_levels)
+#cols<-c("black","firebrick","orangered2","darkorange","gold3","greenyellow","greenyellow",
+       # "limegreen", "forestgreen")
 
-ggplot(Ant_attendance, aes(x=date)) +
-  theme_light()+
-  geom_point(aes(y=N_aphid,color=Seal_500.col, shape=plant)) +
-  scale_color_manual("Sealing (in %)",values=cols)+
-  scale_shape_manual("Plant",values=c(1,2,3,4,5),
+#urb_levels<-unique(Aphids[,"Seal_500"])[order(unique(Aphids[,"Seal_500"]), decreasing=F)]
+#Aphids$Seal_500<-factor(Aphids$Seal_500, levels=urb_levels)
+
+Aphids$plot.simple<-factor(Aphids$plot.simple, levels=c("Ol-11","Ol-55", "Nh-04", "Nh-05",
+                                                        "Om-02", "Nl-55", "Nh-10", "Oh-02",
+                                                        "Nl-200"))
+
+ggplot(Aphids, aes(x=date)) +
+  theme_bw()+
+  geom_point(aes(y=N_aphid,color=Seal_500, shape=plant), size=2) +
+  #geom_line(aes(y=N_aphid,color=Seal_500.col, group=plant))+
+  #scale_color_manual("Sealing (in %)",values=cols)+
+  #scale_color_distiller(palette="Paired")+
+  scale_color_viridis("Sealing in %",option="turbo")+
+  scale_shape_manual("Aphid colony",values=c(1,2,0,4,5),
                      breaks=c("Alpha", "Beta", "Ceta", "Delta", "Gamma"))+
   ylab("Number of aphids")+
   xlab("Date")+
@@ -148,9 +141,13 @@ ggplot(Ant_attendance, aes(x=date)) +
   theme(axis.text.x = element_text(angle = 45, size=6, vjust = 1, hjust=1),
         plot.title=element_text(size=13, face="bold", hjust=0.5),
         legend.title=element_text(size=10, face="bold"),
-        strip.background = element_blank(),
-        strip.text.x = element_blank())+
-  facet_grid(~Seal_500)
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank()
+        #strip.text.x = element_blank(),
+        #strip.background = element_blank()
+  )+
+  facet_wrap(~plot.simple)
+
+
 
 #2.ant number over time
 ggplot(Ant_attendance, aes(x=date)) +

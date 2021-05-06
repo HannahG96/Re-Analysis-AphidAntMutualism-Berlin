@@ -50,9 +50,8 @@ Ant_attendance_repl1<-Ant_attendance_repl[c(which(Ant_attendance_repl[,"measurem
 #1 lacking observation Nh-04/03.08 (this day no caretaker recorded)
 Tending_Time<-merge(expVar, cum.task.allocation[which(cum.task.allocation[,"indv_cat"]=="caretaker"), 
                                                  c("plot.simple", "plant", "date", "record.period.sum", 
-                                                 "aphid_IA.sum","move.sum","walk.flower.sum","walk.leave.sum", 
-                                                 "inactive.sum", "selfclean.sum", "eatpollen.sum","stretching.sum",
-                                                 "ant_IA.sum","uncategorized.sum")], all=T)
+                                                 "aphid_IA.sum","move.sum","stand.sum", 
+                                                 "ant_IA.sum","other.sum")], all=T)
 ###4.GROUP REACTION
 Group_reaction<-merge(expVar, Exp3a[, c("plot.simple", "plant", "date", "N_ant", "MAXREACT", "MAXATTACKS", 
                                         "MAXREACT_prop")], all=T)

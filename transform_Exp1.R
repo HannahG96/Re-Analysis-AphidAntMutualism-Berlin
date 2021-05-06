@@ -30,19 +30,19 @@ record.period<-merge(Exp1[,c("plot.simple","plant", "date","indv_cat", "record.n
                          activ_seq_raw[,c("record.name", "time.length.s.")], by="record.name", all=TRUE)
 cum.record.period<-summaryBy(formula=time.length.s.~ plot.simple+plant+date+indv_cat, 
                              data=record.period, FUN=sum, na.rm=F)
-#+at level of plant (to visualize task allocation at plant level):
-record_plant<-summaryBy(formula=time.length.s.~ plot.simple+plant+indv_cat, 
+#+at level of plot (to visualize task allocation at plot level):
+record_plot<-summaryBy(formula=time.length.s.~ plot.simple+indv_cat, 
                         data=record.period, FUN=sum, na.rm=F)
 
 colnames(cum.record.period)[5]<-"cum.record.period" #change this complicated column name
-colnames(record_plant)[4]<-"record.plant"
+colnames(record_plot)[3]<-"record.plot"
 
 Exp1<-merge(Exp1, cum.record.period, all=TRUE)#add this cum. record period to Exp1
-Exp1<-merge(Exp1, record_plant, all=TRUE)#+sum of all record periods at plant level
+Exp1<-merge(Exp1, record_plot, all=TRUE)#+sum of all record periods at plot level
 
 ###Format behaviour data to obtain time proportions spent in each behaviour 
 source("import activity sequence.R")
-Tasks<-merge(Exp1, activ_sum.plant, by="record.name", all=T)
+Tasks<-merge(Exp1, activ_sum.plot, by="record.name", all=T)
 Exp1<-merge(Exp1, activ_sum, by="record.name", all=T)
 
 ###Calculate rate of behavioural transitions
@@ -52,19 +52,17 @@ Exp1$unit_switch <- Exp1$nb.switch / Exp1$cum.record.period
 ###Produce a summary table indicating the cumulated proportion of time spent in each behaviour at 
 #ant category*date*plot-level:
 
-cum.task.allocation<-summaryBy(formula=record.period+unit_switch+aphid_IA+inactive+move+
-                                 walk.flower+walk.leave+selfclean+eatpollen+stretching+
-                                 ant_IA+uncategorized~plot.simple+plant+date+indv_cat,
+cum.task.allocation<-summaryBy(formula=record.period+unit_switch+aphid_IA+move+
+                                 stand+ant_IA+other~plot.simple+plant+date+indv_cat,
                                data=Exp1, FUN=sum, na.rm=F)
-cum.task.allocation$SUM<-apply(cum.task.allocation[,c(7:16)],1,FUN=sum)#CONTROL
+cum.task.allocation$SUM<-apply(cum.task.allocation[,c(7:11)],1,FUN=sum)#CONTROL
 
 ##and at plant*plot-level
 Tasks<-Tasks[which(Tasks[,"indv_cat"]=="caretaker"),]
-Tasks.plant<-summaryBy(formula=record.period+aphid_IA+inactive+move+
-                   walk.flower+walk.leave+selfclean+eatpollen+stretching+
-                   ant_IA+uncategorized~plot.simple+plant+record.plant,
+Tasks.plot<-summaryBy(formula=record.period+aphid_IA+move+
+                        stand+ant_IA+other~plot.simple+record.plot,
                  data=Tasks, FUN=sum, na.rm=F)
-Tasks.plant$SUM<-apply(Tasks.plant[,c(5:14)],1,FUN=sum)#CONTROL
+Tasks.plot$SUM<-apply(Tasks.plot[,c(4:8)],1,FUN=sum)#CONTROL
 
 #Explore SUM of task time proportions~0.96 for Nl-200
 #=16.08-->summed task proportions for caretaker+transporter+scouts do not reach 1 but [0.72-0.92]
