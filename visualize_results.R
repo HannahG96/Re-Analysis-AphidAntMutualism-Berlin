@@ -156,11 +156,13 @@ Aphids$Seal_500<-as.numeric(Aphids$Seal_500)
 Aphids$plot.simple<-factor(Aphids$plot.simple, levels=c("Ol-11","Ol-55", "Nh-04", "Nh-05",
                                                         "Om-02", "Nl-55", "Nh-10", "Oh-02",
                                                         "Nl-200"))
+Aphids$plantPop<-paste(Aphids$plot.simple, Aphids$plant, sep=" ")
 
 ggplot(Aphids, aes(x=date)) +
   theme_bw()+
   geom_jitter(aes(y=N_aphid,shape=plant, color=Seal_500), size=2) +
-  #geom_line(aes(y=N_aphid,color=Seal_500.col, group=plant))+
+  #geom_smooth(mapping=aes(y=N_aphid, group=plantPop), method="gam", se=FALSE) +
+  geom_line(aes(y=N_aphid,color=Seal_500, group=plant))+
   scale_shape_manual("Aphid colony",values=c(16, 17, 3, 15, 8),
                      breaks=c("Alpha", "Beta", "Ceta", "Delta", "Gamma"))+
   scale_color_viridis("Sealing in %",option="turbo")+
