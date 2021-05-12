@@ -411,7 +411,7 @@ reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s +
                 N_aphid_s:Seal_500_s + 
                 (1|plantPop/date),
               family = binomial,
-              data=na.omit(Ant_aggressivity))
+              data=Ant_aggressivity)
 
 # Test residuals:
 plot(res <- simulateResiduals(reaction.binom )) # Not too bad looking even if slight trend
