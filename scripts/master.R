@@ -30,17 +30,17 @@ library(dotwhisker) # represent the model coefficients with CI
 #library(bestNormalize) # find the best transformation for normalizing response variable
 
 #IMPORT DATA
-source("import data.R")
+source("scripts/import data.R")
 
 #FORMAT DATA
-source("transform_General_plot.R")
-source("transform_Met_plot_date.R")
-source("transform_Met_plant.R")
-source("transform_Exp1.R")
-source("transform_Exp2.R")
-source("transform_Exp3a.R")
-source("transform_Exp3b.R")
-source("myResponseVariables.R")
+source("scripts/transform_General_plot.R")
+source("scripts/transform_Met_plot_date.R")
+source("scripts/transform_Met_plant.R")
+source("scripts/transform_Exp1.R")
+source("scripts/transform_Exp2.R")
+source("scripts/transform_Exp3a.R")
+source("scripts/transform_Exp3b.R")
+source("scripts/myResponseVariables.R")
 
 #ANALYSE DATA
 # source("models.R")
