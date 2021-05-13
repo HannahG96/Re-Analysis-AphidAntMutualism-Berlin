@@ -1,5 +1,39 @@
 # Figures for article
 
+
+# Figure Aphid density with Sealing
+# Interaction plot of partial residuals:
+library(interactions)
+
+interactions::interact_plot(Aph,
+                            pred = date_s, 
+                            modx = Seal_500_s,
+                            legend.main = "% Sealing",
+                            plot.points = TRUE , 
+                            interval = TRUE, 
+                            robust = TRUE,
+                            int.type = "confidence",
+                            x.label = "Date (standardized)",
+                            y.label = "Aphid density (nb./mm)",
+                            colors = "blue",
+                            point.size = 1,
+                            line.thickness = 0.8,
+                            partial.residuals = FALSE,
+                            facet.modx = TRUE,
+                            modx.labels = c("- 1SD (= 7%)",
+                                            "Mean %Sealing (= 25%)",
+                                            "+ 1SD (= 42%)")
+)
+
+# Check out the sealing values for legend:
+paste(c(round(mean(Aphid_density$Seal_500)-
+                        sd(Aphid_density$Seal_500)),
+                round(mean(Aphid_density$Seal_500)),
+                round(mean(Aphid_density$Seal_500)+
+                        sd(Aphid_density$Seal_500))),
+      "%", sep = "")
+
+
 # VISUALIZE ANT AGGRESSIVITY #####
 
 #Prepare data:

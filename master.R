@@ -1,10 +1,6 @@
 #MASTER SCRIPT
 ######################################################
 
-# If your files are well organised, you only need one working directory :) 
-# Set all the paths relative to this one in your scripts. this is good practice as it means you can transport your directory anywhere, or share it with anyone, and all the relative paths will still work. 
-# Even better: create an Rstudio project from the repository, then you don't need to set the WD at all! It is automatically set as the root directory of the project (ie of your github repository). That's what i always do.
-
 # If you are not using an Rproject :
 working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis-AphidAntMutualism-Berlin"
 setwd(working_dir)
