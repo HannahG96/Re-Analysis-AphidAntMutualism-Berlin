@@ -1,5 +1,5 @@
 ###MODEL RESPONSES###
-#Mixed Effect Models=a mixed effects model yields a variance associated with each random factor and 
+#Mixed Effect Models=a mixed effects model yields a variance associated with each random factor and
 #the residual variance, so its not entirely clear which to use when calculating the Rsquared
 #########Shinichi Nakagawa and Holger Schielzeth-method:
 ##marginal R2=describes the proportion of variance explained by the fixed factor(s) alone
@@ -43,7 +43,7 @@ library("sjPlot")#visualize model results
 
 
 #Nice tutorial for model evaluation/representation:
-#https://www.flutterbys.com.au/stats/tut/tut10.5a.html 
+#https://www.flutterbys.com.au/stats/tut/tut10.5a.html
 
 # FOR DREDGE:
 options(na.action = "na.fail")
@@ -51,15 +51,15 @@ options(na.action = "na.fail")
 ### APHID DENSITY#############################################################################
 glimpse(Aphid_density)#check data structure
 
-hist(Aphid_density$N_aphid.mm) 
+hist(Aphid_density$N_aphid.mm)
 #---> Data does not look normal, so I suggest a transformation, which you can explore with a box-cox test (just FYI):
 boxcox(N_aphid.mm~date_s+meanAnt.mean_s+Seal_500_s+
-         date_s:meanAnt.mean_s+ 
+         date_s:meanAnt.mean_s+
          date_s:Seal_500_s+
-         meanAnt.mean_s:Seal_500_s, 
+         meanAnt.mean_s:Seal_500_s,
        data=Aphid_density,
        lambda = seq(-0.8, 0.8, len = 20))
-#---> the lambda value is close to 0.5 => square root transformation 
+#---> the lambda value is close to 0.5 => square root transformation
 # box cox tests are a bit of a recipe, not to be taken too literally, but it can help to decide between log or sqrt transformations.
 hist(sqrt(Aphid_density$N_aphid.mm)) #square root transformation does looks better
 
@@ -68,7 +68,7 @@ hist(sqrt(Aphid_density$N_aphid.mm)) #square root transformation does looks bett
 Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
             date_s:meanAnt.mean_s +
             date_s:Seal_500_s +
-            meanAnt.mean_s:Seal_500_s + 
+            meanAnt.mean_s:Seal_500_s +
                              (1|plantPop),
                            data=Aphid_density)
 
@@ -94,7 +94,7 @@ r2beta(Aph, method="nsj")
 
 # Represent coefs with confidence intervals:
 coefs <- broom.mixed::tidy(Aph, conf.int = TRUE)
-dw <- dwplot(Aph,by_2sd=FALSE) 
+dw <- dwplot(Aph,by_2sd=FALSE)
 print(dw+geom_vline(xintercept=0,lty=2)) # nice graph of coefficients
 #alternative:
 plot_model(Aph, type="est", show.values = TRUE, value.offset = .3, title="",
@@ -138,7 +138,7 @@ library(bestNormalize)#-->this package masks boxcox() function (thats why we loa
 bestNormalize(Ant_attendance$AntperAphid.mean) #=> log10 transform
 
 # Fit LMER:
-AntAtt<-lmer(log(AntperAphid.mean) ~ date_s + N_aphid_s + Seal_500_s +  
+AntAtt<-lmer(log(AntperAphid.mean) ~ date_s + N_aphid_s + Seal_500_s +
                date_s:N_aphid_s + date_s:Seal_500_s +
                N_aphid_s:Seal_500_s +
               (1|plantPop),
@@ -148,7 +148,7 @@ AntAtt<-lmer(log(AntperAphid.mean) ~ date_s + N_aphid_s + Seal_500_s +
 plot(AntAtt)
 qqnorm(resid(AntAtt))
 res <- simulateResiduals(AntAtt)
-plot(res) # ok for normality, but still a slight curved trend in residuals... 
+plot(res) # ok for normality, but still a slight curved trend in residuals...
 
 #Look at the model summary:
 summary(AntAtt) # not the same results as the partial R2 here...
@@ -157,7 +157,7 @@ lmerTest::ranova(AntAtt) # Shows that the random effect does improve model.
 
 # represent coefs with confidence intervals
 coefs <- broom.mixed::tidy(AntAtt, conf.int = TRUE)
-dw <- dwplot(AntAtt,by_2sd=FALSE) 
+dw <- dwplot(AntAtt,by_2sd=FALSE)
 print(dw+geom_vline(xintercept=0,lty=2))
 #alternative:
 plot_model(AntAtt, type="est", show.values = TRUE, value.offset = .3, title="",
@@ -170,8 +170,8 @@ r.squaredGLMM(AntAtt)
 ######### conditional:0.83
 
 #Calculate partial R2 for each predictor (only fixed effects):
-r2beta(AntAtt, method="nsj") 
-# sealing appears to explain a little bit here (r2 = 0.06), but I would ignore it 
+r2beta(AntAtt, method="nsj")
+# sealing appears to explain a little bit here (r2 = 0.06), but I would ignore it
 
 #Represent some relevant marginal effects:
 plot_model(AntAtt, type="pred", back.transform=FALSE,
@@ -214,9 +214,9 @@ hist(Ant_attendance_repl$AntperAphid.norm)
 hist(log(Ant_attendance_repl$AntperAphid))
 
 # Fit LMER:
-AntAtt_repl<-lmer(log(AntperAphid) ~ date_s + N_aphid_s + Seal_500_s + 
+AntAtt_repl<-lmer(log(AntperAphid) ~ date_s + N_aphid_s + Seal_500_s +
                date_s:N_aphid_s + date_s:Seal_500_s +
-               N_aphid_s:Seal_500_s + 
+               N_aphid_s:Seal_500_s +
                (1|plantPop/date),
              data=Ant_attendance_repl)
 
@@ -227,8 +227,8 @@ res <- simulateResiduals(AntAtt_repl)
 plot(res) # PROBLEM!
 
 #2nd try: ordered quantile normalizing transformation
-AntAtt_repl1<-lmer(AntperAphid.norm ~ date_s + N_aphid_s + Seal_500_s + 
-                     date_s:N_aphid_s + date_s:Seal_500_s + 
+AntAtt_repl1<-lmer(AntperAphid.norm ~ date_s + N_aphid_s + Seal_500_s +
+                     date_s:N_aphid_s + date_s:Seal_500_s +
                      N_aphid_s:Seal_500_s +
                     (1|plantPop/date), data=Ant_attendance_repl)
 #Look at diagnostics:
@@ -250,7 +250,7 @@ hist(Tending_Time$aphid_IA.sum)
 library(glmmTMB)
 
 tmp <-  na.omit(Tending_Time) # to be able to apply dredge later
-Tend.betareg <- glmmTMB(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
+Tend.betareg <- glmmTMB(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s +
                  date_s:N_aphid_s + date_s:Seal_500_s +
                  N_aphid_s:Seal_500_s +
                  (1|plantPop),
@@ -270,14 +270,14 @@ summary(Tend.betareg) # another way which gives similar p-values
 # another way to look at fixed effects is calculating confidence intervals for the predictor coefficients:
 coefs <- broom.mixed::tidy(Tend.betareg, conf.int = TRUE)
 # same thing presented in a graph:
-dw <- dotwhisker::dwplot(Tend.betareg,by_2sd=FALSE) 
+dw <- dotwhisker::dwplot(Tend.betareg,by_2sd=FALSE)
 print(dw+geom_vline(xintercept=0,lty=2))
 
 # R squared: DOES NOT WORK with the glmm betaregression ... that's too bad!
 # r.squaredGLMM()
 
 # Just to try it: Normal version (lmer):
-Tend<-lmer(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
+Tend<-lmer(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s +
               date_s:N_aphid_s + date_s:Seal_500_s +
               N_aphid_s:Seal_500_s +
               (1|plantPop),
@@ -337,13 +337,13 @@ GroupDef<-glmer(MAXREACT_prop ~ date_s+N_aphid_s+Seal_500_s+date_s:N_aphid_s+dat
               family=binomial,
             glmerControl(optimizer="bobyqa",optCtrl = list(maxfun = 1000000)))
 #In eval(family$initialize, rho) : non-integer #successes in a binomial glm!
-####SINGULAR FIT!! 
+####SINGULAR FIT!!
 
 ## TRY with glmmTMB
 library(glmmTMB)
 Group_reaction$MIN_noreact <- Group_reaction$N_ant - Group_reaction$MAXREACT
 GroupDef.binom <- glmmTMB(cbind(MAXREACT , MIN_noreact) ~
-                          date_s + N_aphid_s + Seal_500_s + 
+                          date_s + N_aphid_s + Seal_500_s +
                           date_s:N_aphid_s + date_s:Seal_500_s +
                           N_aphid_s:Seal_500_s +
                           (1|plantPop),
@@ -352,7 +352,7 @@ GroupDef.binom <- glmmTMB(cbind(MAXREACT , MIN_noreact) ~
 # NO SINGULAR FIT with this package :D
 
 # Test residuals:
-hist(residuals(GroupDef.binom)) 
+hist(residuals(GroupDef.binom))
 library(DHARMa)
 res <- simulateResiduals(GroupDef.binom )
 plot(res) # no problem with residuals = OK
@@ -364,7 +364,7 @@ summary(GroupDef.binom)
 # confidence intervals for the predictor coefficients:
 t1 <- broom.mixed::tidy(GroupDef.binom, conf.int = TRUE)
 # same thing presented in a graph:
-dw <- dwplot(GroupDef.binom,by_2sd=FALSE) 
+dw <- dwplot(GroupDef.binom,by_2sd=FALSE)
 print(dw+geom_vline(xintercept=0,lty=2))
 
 #Calculate the marginal (= fixed effect) and conditional (= fixed + random effects) r2 values: (works for binomials)
@@ -384,7 +384,7 @@ hist(Ant_aggressivity$aggr_score)
 
 #-->LME
 Aggr<-lmer(aggr_score~context+date_s+N_aphid_s+Seal_500_s+context:date_s+context:N_aphid_s+
-               context:Seal_500_s+date_s:N_aphid_s+date_s:Seal_500_s+N_aphid_s:Seal_500_s+(1|plantPop/date), 
+               context:Seal_500_s+date_s:N_aphid_s+date_s:Seal_500_s+N_aphid_s:Seal_500_s+(1|plantPop/date),
              data=Ant_aggressivity)
 
 # Test residuals:
@@ -405,24 +405,13 @@ summary(Aggr)
 glimpse(Ant_aggressivity) #check data structure
 
 # Fit Binomial 1
-reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
+reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s +
                 context:date_s + context:N_aphid_s + context:Seal_500_s +
                 date_s:N_aphid_s + date_s:Seal_500_s +
-                N_aphid_s:Seal_500_s + 
+                N_aphid_s:Seal_500_s +
                 (1|plantPop/date),
               family = binomial,
-              data=Ant_aggressivity) 
-## >>>>>> !!! using na.omit creates convergence problems, and it is not necessary here
-
-reaction.binom<-glmmTMB(reaction ~  context + date_s + N_aphid_s + Seal_500_s + 
-                          context:date_s + context:N_aphid_s + context:Seal_500_s +
-                          date_s:N_aphid_s + date_s:Seal_500_s +
-                          N_aphid_s:Seal_500_s + 
-                          (1|plot.simple/plant/date),
-                        family = binomial,
-                        data=Ant_aggressivity) 
-## Sealing becomes no longer signif, although mean effect is the same.
-
+              data=Ant_aggressivity)
 
 # Test residuals:
 plot(res <- simulateResiduals(reaction.binom )) # Not too bad looking even if slight trend
@@ -432,7 +421,7 @@ summary(reaction.binom) # sealing, context and date are still signif
 
 # confidence intervals for the predictor coefficients:
 t1 <- broom.mixed::tidy(reaction.binom, conf.int = TRUE)
-dw <- dwplot(reaction.binom,by_2sd=FALSE) 
+dw <- dwplot(reaction.binom,by_2sd=FALSE)
 print(dw+geom_vline(xintercept=0,lty=2))
 
 # r2 values:
@@ -468,10 +457,10 @@ plot_model(reaction.binom, type="pred", back.transform=FALSE,
 
 #########################
 # Fit Binomial 2
-cond.attack.binom <- glmmTMB(attack.given.react ~ context + date_s + N_aphid_s + Seal_500_s + 
+cond.attack.binom <- glmmTMB(attack.given.react ~ context + date_s + N_aphid_s + Seal_500_s +
                           context:date_s + context:N_aphid_s + context:Seal_500_s +
                           date_s:N_aphid_s + date_s:Seal_500_s +
-                          N_aphid_s:Seal_500_s + 
+                          N_aphid_s:Seal_500_s +
                           (1|plantPop/date),
                         family = binomial,
                         data= na.omit(Ant_aggressivity))
@@ -484,7 +473,7 @@ summary(cond.attack.binom) # NOTHING SIGNIFICANT HERE
 
 # confidence intervals for the predictor coefficients:
 t1 <- broom.mixed::tidy(cond.attack.binom, conf.int = TRUE)
-dw <- dwplot(cond.attack.binom,by_2sd=FALSE) 
+dw <- dwplot(cond.attack.binom,by_2sd=FALSE)
 print(dw+geom_vline(xintercept=0,lty=2))
 
 # r2 values:
@@ -494,10 +483,10 @@ r.squaredGLMM(cond.attack.binom)
 
 #################
 # Fit Binomial 3
-attack.binom <- glmmTMB(attack ~ context + date_s + N_aphid_s + Seal_500_s + 
+attack.binom <- glmmTMB(attack ~ context + date_s + N_aphid_s + Seal_500_s +
                           context:date_s + context:N_aphid_s + context:Seal_500_s +
                           date_s:N_aphid_s + date_s:Seal_500_s +
-                          N_aphid_s:Seal_500_s + 
+                          N_aphid_s:Seal_500_s +
                           (1|plantPop/date),
                         family = binomial,
                         data=Ant_aggressivity)
@@ -510,7 +499,7 @@ summary(attack.binom) # marginal (but OK) effect of sealing
 
 # confidence intervals for the predictor coefficients:
 t1 <- broom.mixed::tidy(attack.binom, conf.int = TRUE)
-dw <- dwplot(attack.binom,by_2sd=FALSE) 
+dw <- dwplot(attack.binom,by_2sd=FALSE)
 print(dw+geom_vline(xintercept=0,lty=2))
 
 # r2 values:
@@ -526,7 +515,7 @@ glimpse(Parasitism) #check data structure
 # Because zero inflated binomial
 
 tmp = na.omit(Parasitism)
-Paras <- glmmTMB(cbind(N_parasitised, N_not_parasitised) ~ 
+Paras <- glmmTMB(cbind(N_parasitised, N_not_parasitised) ~
                    date_s + meanAnt.mean_s + Seal_500_s +
                    aphid_IA.sum_s + aggr_score.mean_s +
                    date_s:Seal_500_s + date_s:aphid_IA.sum_s +
@@ -544,11 +533,11 @@ summary(Paras) # nothing signif
 
 # confidence intervals for the predictor coefficients:
 t1 <- broom.mixed::tidy(Paras, conf.int = TRUE)
-dw <- dwplot(Paras,by_2sd=FALSE) 
+dw <- dwplot(Paras,by_2sd=FALSE)
 print(dw+geom_vline(xintercept=0,lty=2))
 
 # r2 values : r2glmm does not handle beta-binomials, but other package does:.
-performance::r2_nakagawa(Paras) 
+performance::r2_nakagawa(Paras)
 # but may not be quite reliable (they seem too high to me for a non-signif model):
 #########marginal:0.339
 #########conditional:0.542
