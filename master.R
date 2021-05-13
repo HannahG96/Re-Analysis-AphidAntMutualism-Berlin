@@ -6,8 +6,8 @@
 # Even better: create an Rstudio project from the repository, then you don't need to set the WD at all! It is automatically set as the root directory of the project (ie of your github repository). That's what i always do.
 
 # If you are not using an Rproject :
-#working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis"
-#setwd(working_dir)
+working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis-AphidAntMutualism-Berlin"
+setwd(working_dir)
 
 
 #LOAD PACKAGES
@@ -31,13 +31,10 @@ library(glmmTMB) # best package to fit the GLMMs
 library(DHARMa)  # cool package for testing residuals of model
 library(broom.mixed) # format the table of model coefficients and get CI
 library(dotwhisker) # represent the model coefficients with CI
-
-#setwd(scriptwd)
+#library(bestNormalize) # find the best transformation for normalizing response variable
 
 #IMPORT DATA
 source("import data.R")
-
-#setwd(scriptwd)
 
 #FORMAT DATA
 source("transform_General_plot.R")

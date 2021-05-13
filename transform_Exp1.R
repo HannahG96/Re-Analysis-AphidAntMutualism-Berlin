@@ -30,13 +30,20 @@ record.period<-merge(Exp1[,c("plot.simple","plant", "date","indv_cat", "record.n
                          activ_seq_raw[,c("record.name", "time.length.s.")], by="record.name", all=TRUE)
 cum.record.period<-summaryBy(formula=time.length.s.~ plot.simple+plant+date+indv_cat, 
                              data=record.period, FUN=sum, na.rm=F)
+#+at level of plot (to visualize task allocation at plot level):
+record_plot<-summaryBy(formula=time.length.s.~ plot.simple+indv_cat, 
+                        data=record.period, FUN=sum, na.rm=F)
+
 colnames(cum.record.period)[5]<-"cum.record.period" #change this complicated column name
+colnames(record_plot)[3]<-"record.plot"
+
 Exp1<-merge(Exp1, cum.record.period, all=TRUE)#add this cum. record period to Exp1
+Exp1<-merge(Exp1, record_plot, all=TRUE)#+sum of all record periods at plot level
 
 ###Format behaviour data to obtain time proportions spent in each behaviour 
-#-->Inactivity/Activity/Tending aphids
 source("import activity sequence.R")
-Exp1<-merge(Exp1, activ_sum, all=T)
+Tasks<-merge(Exp1, activ_sum.plot, by="record.name", all=T)
+Exp1<-merge(Exp1, activ_sum, by="record.name", all=T)
 
 ###Calculate rate of behavioural transitions
 #=number of behavioural transitions ("nb.switch") / cumulated record period*ant category*date*plot
@@ -45,5 +52,31 @@ Exp1$unit_switch <- Exp1$nb.switch / Exp1$cum.record.period
 ###Produce a summary table indicating the cumulated proportion of time spent in each behaviour at 
 #ant category*date*plot-level:
 
-cum.task.allocation<-summaryBy(formula=record.period+unit_switch+aphid_IA+inactive+active~plot.simple+plant+date+indv_cat,
+cum.task.allocation<-summaryBy(formula=record.period+unit_switch+aphid_IA+move+
+                                 stand+ant_IA+other~plot.simple+plant+date+indv_cat,
                                data=Exp1, FUN=sum, na.rm=F)
+cum.task.allocation$SUM<-apply(cum.task.allocation[,c(7:11)],1,FUN=sum)#CONTROL
+
+##and at plant*plot-level
+Tasks<-Tasks[which(Tasks[,"indv_cat"]=="caretaker"),]
+Tasks.plot<-summaryBy(formula=record.period+aphid_IA+move+
+                        stand+ant_IA+other~plot.simple+record.plot,
+                 data=Tasks, FUN=sum, na.rm=F)
+Tasks.plot$SUM<-apply(Tasks.plot[,c(4:8)],1,FUN=sum)#CONTROL
+
+#Explore SUM of task time proportions~0.96 for Nl-200
+#=16.08-->summed task proportions for caretaker+transporter+scouts do not reach 1 but [0.72-0.92]
+#Records:D1,D2,D3,D4,D5,D6
+#->This was the day where another ant colony "invaded" the plant and I observed a fight between colonies
+#=ants showed many behaviours that I did not predefine eg. biting gaster of other ant...
+#These behaviours where classified in the category "ow"-->undefined behaviour
+#Example activity sequence:
+activ_seq_raw[which(activ_seq_raw[,"record.name"]=="D1"), "states"]
+#-->ERROR now corrected: I added a "uncategorized behaviour" column
+#=SUM of all task time proportions should yield zero
+
+#+Ol-55 record E59 (25.08): typing error-->"c" instead of "cl"
+#+Ol-55 record E7 (21.08): "xl" instead of "cl"
+#+3 other typing errors
+#   =corrected in raw data
+

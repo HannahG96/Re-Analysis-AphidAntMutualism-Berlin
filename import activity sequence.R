@@ -52,38 +52,45 @@ for (i in 1: dim(activ_seq_raw)[1]) {     # for each line in the raw data table
 
 ### Calculate proportion of time spent in each activity
 #=time spent in some behavioural state (time.est) / cumulated record period*ant category*date*plot
-ind_activ<-merge(ind_activ, Exp1[,c("record.name", "cum.record.period")], by="record.name", all=T)
+ind_activ<-merge(ind_activ, Exp1[,c("record.name", "cum.record.period", "record.plot")], by="record.name", all=T)
 
-ind_activ$prop.time <-  ind_activ$time.est / ind_activ$cum.record.period
+ind_activ$prop.time <-  ind_activ$time.est / ind_activ$cum.record.period #at plot*plant*date level
+ind_activ$prop.time.plot <-  ind_activ$time.est / ind_activ$record.plot #at plot level
   
 
 ### total time devoted to each activity per observation/ant: ####
 prop_time_activ <- tapply(X = ind_activ$prop.time, INDEX = list(ind_activ$record.name, ind_activ$type), sum, na.rm = T) 
-
+prop_time_activ.plot <- tapply(X = ind_activ$prop.time.plot, INDEX = list(ind_activ$record.name, ind_activ$type), sum, na.rm = T) 
 
 ### Create summary table for each individual ant recorded ####
 activ_sum <- unique(ind_activ[,c("record.name","record.period")])
+activ_sum.plot <- unique(ind_activ[,c("record.name","record.period")])
 
 # total number of time each 
 activ_sum$nb.switch <-tapply(X = ind_activ$order, INDEX = list(ind_activ$record.name), max) -1
 
-# Summed time proportions spent in different behaviour types 
-activ_sum$aphid_IA <- prop_time_activ[ ,"cl"] #tending aphids
-activ_sum$active <- rowSums(prop_time_activ[ ,c("w","exp","wf")],na.rm=T) #walking/exploring
-activ_sum$inactive <- prop_time_activ[ ,"st"] #standing
+# Summed time proportions spent in different behaviour types (simplified)
 
-#Other behaviours: (not relevant)
-#activ_sum$self_IA <- prop_time_activ[ ,"li"]
-#activ_sum$pollen <- prop_time_activ[,"stf"]
-#activ_sum$stretching <- prop_time_activ[,"str"]
-#activ_sum$rec <- activ_sum$record.name
-#activ_sum$troph<-prop_time_activ[,"k"]
-#activ_sum$patrol<-rowSums(prop_time_activ[,c("exp","wf")], na.rm=T)
-#activ_sum$ant_IA <- rowSums(prop_time_activ[ ,c("a","k")],na.rm=T)
+#plot-plant-date level:
+activ_sum$aphid_IA <- prop_time_activ[ ,"cl"] #tending aphids
+activ_sum$move <-  rowSums(prop_time_activ[ ,c("w","wf","exp")],na.rm=T)#walking, walks on flower, walks on leave
+activ_sum$stand <- prop_time_activ[ ,"st"] #standing
+activ_sum$ant_IA <- rowSums(prop_time_activ[ ,c("a","k")],na.rm=T) #interaction with other ant
+activ_sum$other <- rowSums(prop_time_activ[ ,c("str","stf","li", "ow")],na.rm=T)#stretching, eating pollen, cleaning itself, uncategorized bhv
+
+#plot-level:
+activ_sum.plot$aphid_IA <- prop_time_activ.plot[ ,"cl"] #tending aphids
+activ_sum.plot$move <-  rowSums(prop_time_activ.plot[ ,c("w","wf","exp")],na.rm=T)#walking, walks on flower, walks on leave
+activ_sum.plot$stand <- prop_time_activ.plot[ ,"st"] #standing
+activ_sum.plot$ant_IA <- rowSums(prop_time_activ.plot[ ,c("a","k")],na.rm=T) #interaction with other ant
+activ_sum.plot$other <- rowSums(prop_time_activ.plot[ ,c("str","stf","li", "ow")],na.rm=T)#stretching, eating pollen, cleaning itself, uncategorized bhv
+  
+
 
 ###Transform NAs within the behavioural type columns into 0
 # = NA indicates that ant did not spent time in this activity during record-->time fraction of 0
-bhv<-c("aphid_IA", "active", "inactive")
+bhv<-c("aphid_IA", "move", "stand", "ant_IA", "other")
 for(i in 1:length(bhv)){
-  activ_sum[which(is.na(activ_sum[,bhv[i]])==T), bhv[i]]<-0 }
+  activ_sum[which(is.na(activ_sum[,bhv[i]])==T), bhv[i]]<-0 
+  activ_sum.plot[which(is.na(activ_sum.plot[,bhv[i]])==T), bhv[i]]<-0 }
 
