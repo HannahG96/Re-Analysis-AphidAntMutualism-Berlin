@@ -41,7 +41,7 @@ Exp1<-merge(Exp1, cum.record.period, all=TRUE)#add this cum. record period to Ex
 Exp1<-merge(Exp1, record_plot, all=TRUE)#+sum of all record periods at plot level
 
 ###Format behaviour data to obtain time proportions spent in each behaviour 
-source("import activity sequence.R")
+source("scripts/import activity sequence.R")
 Tasks<-merge(Exp1, activ_sum.plot, by="record.name", all=T)
 Exp1<-merge(Exp1, activ_sum, by="record.name", all=T)
 
