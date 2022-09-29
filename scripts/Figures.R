@@ -32,9 +32,9 @@ interactions::interact_plot(Aph,
                             int.type = "confidence",
                             x.label = "Date (standardized)",
                             y.label = "Aphid density (nb./mm)",
-                            colors = "blue",
-                            point.size = 1,
-                            line.thickness = 0.8,
+                            colors = NULL,
+                            point.size = 1.5,
+                            line.thickness = 1,
                             vary.lty = FALSE,
                             partial.residuals = FALSE,
                             facet.modx = TRUE,
@@ -86,13 +86,14 @@ newd <- data.frame(
 
 # Extract predicted proportions from the fitted binomial model:
 
-reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s +
-                          context:date_s + context:N_aphid_s + context:Seal_500_s +
-                          date_s:N_aphid_s + date_s:Seal_500_s +
-                          N_aphid_s:Seal_500_s +
-                          (1|plantPop/date),
-                        family = binomial,
-                        data=Ant_aggressivity)
+reaction.binom2<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
+                         context:date_s + context:N_aphid_s + context:Seal_500_s +
+                         date_s:N_aphid_s + date_s:Seal_500_s +
+                         N_aphid_s:Seal_500_s + 
+                         (1|plantPop/date),
+                       family = binomial,
+                       data=data.aggressivity,
+                       glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
 newd <- data.frame(
   unique(Ant_aggressivity[, c("Seal_500_s","Seal_500","context",
                               "date", "date_s","N_aphid_s")]),
@@ -101,7 +102,7 @@ newd <- data.frame(
   plantPop = NA,
   date = NA)
 
-newd$predicted <- predict(reaction.binom,
+newd$predicted <- predict(reaction.binom2,
                           newdata=newd,
                           type = "response",re.form = NA)
 
@@ -261,7 +262,7 @@ Aphids$plantPop<-paste(Aphids$plot.simple, Aphids$plant, sep=" ")
 #open graphical device:
 #-->2 column width
 pdf(file="figures/aphid_numbers.pdf",         # File name
-    width = 7.2, height = 5.5, # Width and height in inches
+    width = 7.2, height = 6, # Width and height in inches
     bg = "white",          # Background color
     colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
 
@@ -292,39 +293,205 @@ ggplot(Aphids, aes(x=date, fill=Seal_500)) +
 dev.off() 
 
 ######################################################################################
-#ant attendance (Probably not relevant)
-Ant_attendance$plot.simple<-factor(Ant_attendance$plot.simple, levels=c("Ol-11","Ol-55", "Nh-04", "Nh-05",
-                                                                        "Om-02", "Nl-55", "Nh-10", "Oh-02",
-                                                                        "Nl-200"))
-#open graphical device:
-#-->2 column width
-pdf(file="figures/ant_numbers.pdf",         # File name
-    width = 7.2, height = 5.5, # Width and height in inches
+#APHID DENSITY~ANT NUMBER
+##+Show interaction with time
+
+#create a variable to categorize date in begin/mid/end of August
+Aphid_density$season<-NA
+range(Aphid_density$date_s)#-1.629603  1.759559
+Aphid_density[which(Aphid_density[,"date_s"]<= 0.63),"season"]<-"mid"
+Aphid_density[which(Aphid_density[,"date_s"]< -0.5),"season"]<-"begin"
+Aphid_density[which(Aphid_density[,"date_s"]>0.63),"season"]<-"end"
+
+pdf(file="figures/ant_aphid_nb.pdf",         # File name
+    width = 5, height = 4, # Width and height in inches
     bg = "white",          # Background color
     colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
 
-ggplot(Ant_attendance, aes(x=date, fill=Seal_500)) +
+
+ggplot(Aphid_density, aes(y=N_aphid.mm, x=meanAnt.mean, color=season))+
   theme_minimal()+
-  geom_point(aes(y=meanAnt.mean,shape=plant), size=2, color="#90A4ADFF") +
-  geom_line(aes(y=meanAnt.mean, group=plant), color="#90A4ADFF")+
-  scale_shape_manual("Aphid colony",values=c(21, 24, 23, 22, 25),
-                     breaks=c("Alpha", "Beta", "Ceta", "Delta", "Gamma"))+
-  scale_fill_viridis(option="mako", begin=0.1, end=0.9, direction=-1)+
-  scale_color_viridis(option="mako", begin=0.1, end=0.9, direction=-1)+
-  labs(fill="% Sealing", color="% Sealing")+
-  ylab("Number of ants")+
-  xlab("Date")+
-  theme(axis.text.x = element_text(angle = 45, size=7, vjust = 1, hjust=1),
-        legend.title=element_text(size=10, face="bold", color="gray21"),
+  geom_point(size=1.75, aes(shape=season)) +
+  scale_color_manual("", values=c("black", "black","#90A4ADFF"),
+                     breaks=c("begin", "mid", "end"),
+                     labels=c("Begin of August", "Mid of August", "End of August"))+
+  scale_shape_manual("", values=c(16,1,16),
+                     breaks=c("begin", "mid", "end"),
+                     labels=c("Begin of August", "Mid of August", "End of August"))+
+  geom_smooth(aes(linetype=season),method="lm",se=FALSE, size=0.8)+
+  scale_linetype_manual("", values=c("solid", "dotted","solid"),
+                    breaks=c("begin", "mid", "end"),
+                    labels=c("Begin of August", "Mid of August", "End of August"))+
+  theme(legend.title=element_text(size=10, face="bold", color="gray21"),
         axis.title.y=element_text(size=10, face="bold", color="gray21"),
         axis.title.x=element_text(size=10, face="bold", color="gray21"),
         panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
         panel.grid.minor = element_blank(),
-        strip.text.x = element_text(face="bold", size=10, color="gray21"),
-        strip.background = element_blank())+
-  facet_wrap(~plot.simple)
+        legend.position=c(0.88,0.95)) +
+  xlab("Number of ants") +
+  ylab("Aphid density (nb./mm)")
 
 # close the graphical device:
 dev.off() 
 
-#OR: just a simple plot showing that ant and aphid numbers are positively correlated (??)
+#####################################################################################
+#ANT NUMBER ~ SEALING
+#(predicted values)
+
+# Extract predicted proportions from the fitted poisson model:
+newd <- data.frame(
+  unique(Ant_attendance[, c("Seal_500_s","Seal_500",
+                              "date", "date_s","N_aphid_s")]),
+  plantPop = NA,
+  date = NA)
+
+#Fit LMER with log-transformed decimal ant numbers:
+#Ant_attendance$N_ant<-round(Ant_attendance$meanAnt.mean)#transform response in integer values
+
+#Ant.nb2<-glmer(N_ant~date_s + N_aphid_s + Seal_500_s +  
+           #      date_s:N_aphid_s + date_s:Seal_500_s +
+           #      N_aphid_s:Seal_500_s +
+           #      (1|plantPop),family="poisson", data=Ant_attendance, nAGQ=7)
+Ant.nb<-lmer(log(meanAnt.mean)~date_s + N_aphid_s + Seal_500_s +  
+               date_s:N_aphid_s + date_s:Seal_500_s +
+               N_aphid_s:Seal_500_s +
+               (1|plantPop), data=Ant_attendance)
+
+newd <- data.frame(
+  unique(Ant_attendance[, c("Seal_500_s","Seal_500","plant",
+                              "date", "date_s","N_aphid_s")]),
+  plot.simple = NA,
+  plantPop = NA,
+  date = NA)
+
+newd$predicted <- predict(Ant.nb,
+                          newdata=newd,
+                          type = "response",re.form = NA)
+
+#Open graphical device
+pdf(file="figures/ant_numbers_predicted.pdf",         # File name
+    width = 5, height = 4, # Width and height in inches
+    bg = "white",          # Background color
+    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
+
+#Produce plot based on predicted data:
+
+ggplot(data = newd, mapping = aes(Seal_500, predicted)) +
+  geom_point(size=1.75) +
+  theme_minimal()+
+  geom_smooth(method = "glm", formula = y ~ x, 
+              method.args=list(family="poisson"), se = FALSE, color="black")+
+  theme(legend.title=element_text(size=10, face="bold", color="gray21"),
+        axis.title.y=element_text(size=10, face="bold", color="gray21"),
+        axis.title.x=element_text(size=10, face="bold", color="gray21"),
+        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
+        panel.grid.minor = element_blank()) +
+  xlab("% Sealing") +
+  ylab("Log(Ant number)")
+
+# close the graphical device:
+dev.off() 
+
+###OR: Show real data with model fit
+
+#Open graphical device
+pdf(file="figures/ant_numbers_data.pdf",         # File name
+    width = 5, height = 4, # Width and height in inches
+    bg = "white",          # Background color
+    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
+
+
+ggplot(data = Ant_attendance, aes(Seal_500, log(meanAnt.mean))) +
+  geom_point(size=1.75) +
+  theme_minimal()+
+  geom_smooth(data=newd, aes(x=Seal_500, y=predicted), 
+              method = "glm", formula = y ~ x, 
+              method.args=list(family="poisson"), se = FALSE, color="black") +
+  theme(legend.title=element_text(size=10, face="bold", color="gray21"),
+        axis.title.y=element_text(size=10, face="bold", color="gray21"),
+        axis.title.x=element_text(size=10, face="bold", color="gray21"),
+        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
+        panel.grid.minor = element_blank()) +
+  xlab("% Sealing") +
+  ylab("Log(Ant number)")
+
+# close the graphical device:
+dev.off() 
+
+##########################################################################
+#TENDING TIME ~ DATE
+#show real data together with model fit
+
+tmp <-  na.omit(Tending_Time) # to be able to apply dredge later
+Tend.betareg <- glmmTMB(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
+                          date_s:N_aphid_s + date_s:Seal_500_s +
+                          N_aphid_s:Seal_500_s +
+                          (1|plantPop),
+                        data= tmp,
+                        family=beta_family)
+
+newd <- data.frame(
+  unique(Tending_Time[, c("Seal_500_s","Seal_500","plant",
+                            "date", "date_s","N_aphid_s")]),
+  plot.simple = NA,
+  plantPop = NA,
+  date = NA)
+
+newd$predicted <- predict(Tend.betareg,
+                          newdata=newd,
+                          type = "response",re.form = NA)
+
+#Open graphical device
+pdf(file="figures/tending_time.pdf",         # File name
+    width = 5, height = 4, # Width and height in inches
+    bg = "white",          # Background color
+    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
+
+ggplot(data = Tending_Time, aes(date, aphid_IA.sum)) +
+  geom_point(size=1.75) +
+  theme_minimal()+
+  geom_smooth(data=newd, aes(x=date, y=predicted), 
+                             method = "glm", formula = y ~ x, 
+                             method.args=list(family="beta_family"), se = FALSE, color="black") +
+  theme(legend.title=element_text(size=10, face="bold", color="gray21"),
+        axis.title.y=element_text(size=10, face="bold", color="gray21"),
+        axis.title.x=element_text(size=10, face="bold", color="gray21"),
+        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
+        panel.grid.minor = element_blank()) +
+  xlab("Date") +
+  ylab("Tending Time")
+
+# close the graphical device:
+dev.off() 
+
+##############################################################################
+#Values for writing
+
+#Temperature
+mean(Ant_aggressivity$mean.temp)#22.66531
+range(Ant_aggressivity$mean.temp)#15.36667 36.36667
+ggplot(Ant_aggressivity, aes(x=plot.simple, y=mean.temp))+
+  geom_boxplot()
+#Aphid counts
+sum(Aphid_density$N_aphid)#4001
+
+#Ant counts
+sum(Aphid_density$meanAnt.mean)#693.5473
+
+#Ant-over-aphid ratio
+range(Ant_attendance$AntperAphid.mean) #0.0553719 0.9625000
+a<-Ant_attendance[which(Ant_attendance[,"N_aphid"]<15),]
+
+Aphid_density[which(Aphid_density[,"date_s"]<= 0.63),"date"]
+Aphid_density[which(Aphid_density[,"date_s"]< -0.5),"date"]
+Aphid_density[which(Aphid_density[,"date_s"]>0.63),"date"]
+
+#Tending time
+mean(Tending_Time$aphid_IA.sum, na.rm=TRUE)
+
+#Aggressivity
+length(which(Ant_aggressivity[,"reaction"]==1))/332 #0.8283133
+a<-Ant_aggressivity[which(Ant_aggressivity[,"context"]=="tending aphids"),]
+length(which(a[,"reaction"]==1))/164#0.8963415
+b<-Ant_aggressivity[which(Ant_aggressivity[,"context"]=="other behaviour"),]
+length(which(b[,"reaction"]==1))/168#0.7619048

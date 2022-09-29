@@ -19,7 +19,7 @@ library("MuMIn")#calculate marginal and conditional Rsquared
 library("r2glmm")#partial Rsquared for fixed effects
 library("xlsx")#export R-tables to excel
 library("ggnewscale")#extended color scales in ggplot
-
+library("sjPlot")#visualize model results
 # added by maud:
 library(stringr) # for all types of handy string modifications
 library(lmerTest) #gives you p-values for LMER models via Satterthwaite's method

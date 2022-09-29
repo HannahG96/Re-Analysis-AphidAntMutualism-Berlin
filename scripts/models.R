@@ -11,7 +11,6 @@
 #Binomial GLMM:
 #  https://aosmith.rbind.io/2020/08/20/simulate-binomial-glmm/
 
-library("sjPlot")#visualize model results
   #http://www.strengejacke.de/sjPlot/reference/plot_model.html
 
 ###COEFFICIENTS
@@ -70,7 +69,7 @@ Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
             date_s:Seal_500_s +
             meanAnt.mean_s:Seal_500_s + 
                              (1|plantPop),
-                           data=Aphid_density)
+                           data=Aphid_density)#N=53
 
 #Look at diagnostics:
 plot(Aph)
@@ -81,6 +80,8 @@ plot(res) # Looks all good, no significant deviations anywhere
 
 #Look at the model summary:
 # MAUD: function "summary" Gives you more interesting stuff with package lmerTest:
+#-->t-tests use Satterthwaite's method
+#=Satterthwaite's approximmation to degrees of freedom
 summary(Aph) # P values are consistent with the partial R2 confidence intervals below
 lmerTest::ranova(Aph) # Shows that the random effect does not improve your model much... (not essential, just FYI)
 
@@ -92,85 +93,102 @@ r.squaredGLMM(Aph)
 #Calculate partial R2 for each predictor (only fixed effects):
 r2beta(Aph, method="nsj")
 
-# Represent coefs with confidence intervals:
-coefs <- broom.mixed::tidy(Aph, conf.int = TRUE)
-dw <- dwplot(Aph,by_2sd=FALSE) 
-print(dw+geom_vline(xintercept=0,lty=2)) # nice graph of coefficients
-#alternative:
-sjPlot::plot_model(Aph, type="est", show.values = TRUE, value.offset = .3, 
-           title="",
-           vline.color="grey") +
-  sjPlot::theme_sjplot2()
-
-#Represent some relevant marginal effects:
-plot(effects::allEffects(Aph)) # to have an (ugly) visual of interactions
-
-# Interaction
-library(interactions)
-
-seal.labels = c(round(mean(Aphid_density$Seal_500)-
-                        sd(Aphid_density$Seal_500)),
-                round(mean(Aphid_density$Seal_500)),
-                round(mean(Aphid_density$Seal_500)+
-                        sd(Aphid_density$Seal_500)))
-
-interactions::interact_plot(Aph,
-                            pred = date_s, 
-                            modx = Seal_500_s,
-                            legend.main = "% Sealing",
-                            plot.points = TRUE , 
-                            interval = TRUE, 
-                            robust = TRUE,
-                            int.type = "confidence",
-                            x.label = "Date (standardized)",
-                            y.label = "Aphid density (nb./mm)",
-                            colors = "blue",
-                            point.size = 1,
-                            line.thickness = 0.8,
-                            partial.residuals = TRUE,
-                            facet.modx = TRUE,
-                            modx.labels = c("- 1SD (= 7%)",
-                                            "Mean %Sealing (= 25%)",
-                                            "+ 1SD (= 42%)")
-)
-
-mean(Aphid_density$Seal_500_s)
-sd(Aphid_density$Seal_500_s)
-mean(Aphid_density$Seal_500)
-sd(Aphid_density$Seal_500)
-
-
-
-### sjPlot:
-library(sjPlot)
-plot_model(Aph, type="pred", back.transform=TRUE,
-           terms=c("date_s",
-                   "Seal_500_s[-1.35,  0.45, 2.16])"),
-           pred.type="fe", #predictions are conditioned on random effects ; alternative: fixed effects only "fe"
-           title="",
-           axis.title=c("Standardized date", "aphid density (nb./mm)"),
-           legend.title="% Sealing (standardized)",
-           #axis.lim=(2 vectors for x and y),
-           #show.data = TRUE
-           se= )+
-  theme_sjplot2()
-
-plot_model(Aph, type="pred", back.transform=FALSE,
-           terms=c("date_s", "meanAnt.mean_s"),
-           pred.type="re", #predictions are conditioned on random effects ; alternative: fixed effects only "fe"
-           title="",
-           axis.title=c("date", "sqrt (aphid / mm)"),
-           legend.title="Number of ants (low-->high)",
-           #axis.lim=(2 vectors for x and y),
-           #show.data = TRUE
-           se=TRUE)+
-  theme_sjplot2()
-
 # dredge + model avg to check if the same variables come out:
 d.Aph <- dredge(Aph, rank = "AICc", REML = FALSE)
 model.avg(d.Aph, subset = delta <2) # all variables kept in best 3 models
 # We could do this for each model to provide an alternative method
 # in an appendix if needed...
+
+### Ant NUMBER############################################################################
+
+glimpse(Ant_attendance)#check data structure
+hist(Ant_attendance$meanAnt.mean)
+
+###A)RESPONSE AS INTEGER VARIABLE
+#####################################
+#Fit GLMER with poisson distribution:
+
+Ant_attendance$N_ant<-round(Ant_attendance$meanAnt.mean)#transform response in integer values
+
+#1.Laplace approximation - glmer:
+#Ant.nb1<-glmer(N_ant~date_s + N_aphid_s + Seal_500_s +  
+                #    date_s:N_aphid_s + date_s:Seal_500_s +
+                 #   N_aphid_s:Seal_500_s +
+                  #  (1|plantPop),family="poisson", data=Ant_attendance)
+#Look at diagnostics:
+#plot(Ant.nb1)
+#qqnorm(resid(Ant.nb1))
+#res <- simulateResiduals(Ant.nb1)
+#plot(res)#PROBLEM!!!
+
+
+#2.Gauss-Hermite quadrature - glmer
+#=This approach approximates the marginal likelihood by approximating the value of integrals at specific points (quadratures). This technique can be further adapted by allowing the number of quadratures and their weights to be optimized via a set of rules.
+#Ant.nb2<-glmer(N_ant~date_s + N_aphid_s + Seal_500_s +  
+             #    date_s:N_aphid_s + date_s:Seal_500_s +
+             #    N_aphid_s:Seal_500_s +
+             #    (1|plantPop),family="poisson", data=Ant_attendance, nAGQ=7)
+
+#Look at diagnostics:
+#plot(Ant.nb2)
+#qqnorm(resid(Ant.nb2))
+#res <- simulateResiduals(Ant.nb2)
+#plot(res)
+
+#Look at model output
+#summary(Ant.nb2)
+#Calculate the marginal (= fixed effect) and conditional (= fixed + random effects) r2 values:
+#r.squaredGLMM(Ant.nb2)
+#R2m       R2c
+#delta     0.4008416 0.8022381
+#lognormal 0.4035644 0.8076876
+#trigamma  0.3979624 0.7964759
+#-->trigamma should be used whenever available
+#########marginal:0.3979624
+#########conditional:0.7964759
+
+#Calculate partial R2 for each predictor (only fixed effects):
+#r2beta(Ant.nb2, method="sgv")
+#NOTE: r2beta now also handles glmer objects: see https://cran.r-project.org/web/packages/r2glmm/README.html
+#-->use of method "sgv" is recommended=most stable:see https://cran.r-project.org/web/packages/r2glmm/README.html
+#"sgv"=R??2, the proportion of generalized variance explained by the fixed predictors. This statistic is primarily used to select a covariance structure in the linear and generalized linear mixed model.
+#      This method was introduced by Jaeger et al. (2017) (using penalized quasi-likelihood (PQL))
+#"nsj"= R(m)2, the proportion of variance explained by the fixed predictors. This statistic is a simplified version of R??2 that can be used as a substitute for models fitted to very large datasets
+#      This method was introduced by Nakagawa and Schielzeth (2013) and later modified by Johnson (2014).
+#     -->only for lmer and lme models !!!
+
+#####################################
+###B)RESPONSE AS DECIMAL VARIABLE
+
+#Fit LMER with gaussian distribution:
+#-->log-transformed response to normalize data
+hist(log(Ant_attendance$meanAnt.mean))
+
+Ant.nb<-lmer(log(meanAnt.mean)~date_s + N_aphid_s + Seal_500_s +  
+                 date_s:N_aphid_s + date_s:Seal_500_s +
+                 N_aphid_s:Seal_500_s +
+                 (1|plantPop), data=Ant_attendance)#N=53
+#Look at diagnostics:
+plot(Ant.nb)
+qqnorm(resid(Ant.nb))
+res <- simulateResiduals(Ant.nb)
+plot(res)#ALL GOOD!
+
+#Look at the model summary:
+# MAUD: function "summary" Gives you more interesting stuff with package lmerTest:
+#-->t-tests use Satterthwaite's method
+summary(Ant.nb) # P values are consistent with the partial R2 confidence intervals below
+#-->Sealing is only marginally significant
+lmerTest::ranova(Ant.nb) # Shows that the random effect improves your model much... (not essential, just FYI)
+
+#Calculate the marginal (= fixed effect) and conditional (= fixed + random effects) r2 values:
+r.squaredGLMM(Ant.nb)
+#########marginal:0.3961412
+#########conditional:0.7521842
+
+#Calculate partial R2 for each predictor (only fixed effects):
+r2beta(Ant.nb, method="nsj")
+#-->partial Rsquared of sealing remains relatively high
 
 ### Ant ATTENDANCE############################################################################
 glimpse(Ant_attendance)#check data structure
@@ -192,18 +210,10 @@ res <- simulateResiduals(AntAtt)
 plot(res) # ok for normality, but still a slight curved trend in residuals... 
 
 #Look at the model summary:
+#-->t-tests use Satterthwaite's method
 summary(AntAtt) # not the same results as the partial R2 here...
 lmerTest::ranova(AntAtt) # Shows that the random effect does improve model.
 # FYI: I also tested the model without random effect to see, and the Sealing effect really was not significant at all. so exactly the same results without random.
-
-# represent coefs with confidence intervals
-coefs <- broom.mixed::tidy(AntAtt, conf.int = TRUE)
-dw <- dwplot(AntAtt,by_2sd=FALSE) 
-print(dw+geom_vline(xintercept=0,lty=2))
-#alternative:
-plot_model(AntAtt, type="est", show.values = TRUE, value.offset = .3, title="",
-           vline.color="grey")+
-  theme_sjplot2()
 
 #Calculate the marginal (= fixed effect) and conditional (= fixed + random effects) r2 values:
 r.squaredGLMM(AntAtt)
@@ -213,28 +223,6 @@ r.squaredGLMM(AntAtt)
 #Calculate partial R2 for each predictor (only fixed effects):
 r2beta(AntAtt, method="nsj") 
 # sealing appears to explain a little bit here (r2 = 0.06), but I would ignore it 
-
-#Represent some relevant marginal effects:
-plot_model(AntAtt, type="pred", back.transform=FALSE,
-           terms=c("date_s", "N_aphid_s[-1.05, 0.10, 1.17 , 2.90]"),
-           pred.type="re", #predictions are conditioned on random effects ; alternative: fixed effects only "fe"
-           title="",
-           axis.title=c("date", "log (ant / aphid)"),
-           legend.title="Number of aphids (low-->high)",
-           #axis.lim=,
-           #show.data = TRUE
-           se=TRUE)+
-  theme_sjplot2()
-
-plot_model(AntAtt, type="pred", back.transform=FALSE,
-           terms=c("Seal_500_s"),
-           pred.type="re", #predictions are conditioned on random effects ; alternative: fixed effects only "fe"
-           title="",
-           axis.title=c("Seal_500", "log (ant / aphid)"),
-           #axis.lim=,
-           #show.data = TRUE,
-           se=TRUE)+
-  theme_sjplot2()
 
 # dredge check
 d.AntAtt <- dredge(AntAtt, REML = FALSE, rank = "AICc")
@@ -267,16 +255,6 @@ qqnorm(resid(AntAtt_repl))
 res <- simulateResiduals(AntAtt_repl)
 plot(res) # PROBLEM!
 
-#2nd try: ordered quantile normalizing transformation
-AntAtt_repl1<-lmer(AntperAphid.norm ~ date_s + N_aphid_s + Seal_500_s + 
-                     date_s:N_aphid_s + date_s:Seal_500_s + 
-                     N_aphid_s:Seal_500_s +
-                    (1|plantPop/date), data=Ant_attendance_repl)
-#Look at diagnostics:
-plot(AntAtt_repl)
-qqnorm(resid(AntAtt_repl))
-res <- simulateResiduals(AntAtt_repl1)
-plot(res) #PROBLEM!
 
 ### TENDING TIME#############################################################################
 glimpse(Tending_Time)#check data structure
@@ -288,7 +266,7 @@ hist(Tending_Time$aphid_IA.sum)
 # https://rcompanion.org/handbook/J_02.html
 
 #### Trying out : BETA REGRESSIONS using the glmmTMB package:
-library(glmmTMB)
+
 
 tmp <-  na.omit(Tending_Time) # to be able to apply dredge later
 Tend.betareg <- glmmTMB(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
@@ -305,6 +283,7 @@ plot(res) # looks good
 
 # Test fixed effects:
 car::Anova(Tend.betareg, type="III") # one way to test for significance (probably the best)
+#-->Wald test (z-test)
 summary(Tend.betareg) # another way which gives similar p-values
 # sealing is signif (decreasing)
 
@@ -315,57 +294,22 @@ dw <- dotwhisker::dwplot(Tend.betareg,by_2sd=FALSE)
 print(dw+geom_vline(xintercept=0,lty=2))
 
 # R squared: DOES NOT WORK with the glmm betaregression ... that's too bad!
-# r.squaredGLMM()
 
-# Just to try it: Normal version (lmer):
-Tend<-lmer(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
-              date_s:N_aphid_s + date_s:Seal_500_s +
-              N_aphid_s:Seal_500_s +
-              (1|plantPop),
-            data= na.omit(Tending_Time))
+Tend <- lmer(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
+                          date_s:N_aphid_s + date_s:Seal_500_s +
+                          N_aphid_s:Seal_500_s +
+                          (1|plantPop),
+                        data= tmp)
 
-summary(Tend) # no significant effects
-plot(Tend)
+# Test residuals:
+hist(residuals(Tend)) # looks pretty good and normal
 res <- DHARMa::simulateResiduals(Tend)
-plot(res) # looks not too bad either, but more trend in residuals
+plot(res) # looks good
 
-# Compare the AIC of betaregression and normal regression:
-model.sel(Tend, Tend.betareg)
-## The normal model appears to be much worse than the betareg
-# Conclusion: use betaregression.
-
-#Represent coefs with CI in a plot:
-plot_model(Tend.betareg, type="est", show.values = TRUE, value.offset = .3, title="",
-           vline.color="grey", axis.lim = c(0.1,5))+
-  theme_sjplot2()
-
-#Visualize marginal effects:
-plot_model(Tend.betareg, type="pred", back.transform=FALSE,
-           terms=c("Seal_500_s"),
-           pred.type="re", #predictions are conditioned on random effects ; alternative: fixed effects only "fe"
-           title="",
-           axis.title=c("Seal_500", "tending time"),
-           #axis.lim=,
-           show.data = TRUE,
-           se=TRUE)+
-  theme_sjplot2()
-
-plot_model(Tend.betareg, type="pred", back.transform=FALSE,
-           terms=c("date_s"),
-           pred.type="re", #predictions are conditioned on random effects ; alternative: fixed effects only "fe"
-           title="",
-           axis.title=c("date", "tending time"),
-           #axis.lim=,
-           show.data = TRUE,
-           se=TRUE)+
-  theme_sjplot2()
-
-# dredge check
-d.Tend <- dredge(Tend.betareg, rank = "AICc", REML = FALSE)
-a <- model.avg(d.Tend, subset = delta <2)
-# date and Sealing are the top two variables.
-model.weights(Tend)
-
+# Test fixed effects:
+car::Anova(Tend.betareg, type="III") # one way to test for significance (probably the best)
+summary(Tend)
+summary(Tend.betareg)
 ### GROUP DEFENSE#############################################################################
 glimpse(Group_reaction)#check data structure
 hist(Group_reaction$MAXREACT_prop)
@@ -413,11 +357,6 @@ r.squaredGLMM(GroupDef.binom)
 #########marginal: 0.11
 #########conditional: 0.63
 
-#Represent coefs with CI in a plot:
-plot_model(GroupDef.binom, type="est", show.values = TRUE, value.offset = .3, title="",
-           vline.color="grey")+
-  theme_sjplot2()
-
 
 ### Ant AGGRESSIVITY###########################################################################
 glimpse(Ant_aggressivity) #check data structure
@@ -444,6 +383,7 @@ summary(Aggr)
 # 3: probability of aggressive reaction! (score = 2)
 
 glimpse(Ant_aggressivity) #check data structure
+Ant_aggressivity$reaction<-as.factor(Ant_aggressivity$reaction)
 
 # Fit Binomial 1
 reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
@@ -452,7 +392,7 @@ reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s +
                 N_aphid_s:Seal_500_s + 
                 (1|plantPop/date),
               family = binomial,
-              data=na.omit(Ant_aggressivity))
+              data=Ant_aggressivity)
 
 # Test residuals:
 plot(res <- simulateResiduals(reaction.binom )) # Not too bad looking even if slight trend
@@ -470,31 +410,36 @@ r.squaredGLMM(reaction.binom)
 #########marginal:0.21
 #########conditional:0.35
 
-#Represent coefs with CI in a plot:
-plot_model(reaction.binom, type="est", show.values = TRUE, value.offset = .3, title="",
-           vline.color="grey")+
-  theme_sjplot2()
+#Alternative: GLMER (to obtain partial rsquared)
+data.aggressivity<-Ant_aggressivity[,c(1:4,11,13,16,17,19)]#extract only relevant data (=remove NAs)
+data.aggressivity$date<-as.factor(data.aggressivity$date) #factorize date: used as a grouping variable
+reaction.binom2<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
+                          context:date_s + context:N_aphid_s + context:Seal_500_s +
+                          date_s:N_aphid_s + date_s:Seal_500_s +
+                          N_aphid_s:Seal_500_s + 
+                          (1|plantPop/date),
+                        family = binomial,
+                        data=data.aggressivity,
+                       glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
 
-#Visualize relevant marginal effects
-plot_model(reaction.binom, type="pred", back.transform=FALSE,
-           terms=c("Seal_500_s", "context"),
-           pred.type="re", #predictions are conditioned on random effects ; alternative: fixed effects only "fe"
-           title="",
-           axis.title=c("Seal_500", "Probability of reaction"),
-           #axis.lim=,
-           show.data = TRUE,
-           se=TRUE)+
-  theme_sjplot2()
+# Test residuals:
+plot(res <- simulateResiduals(reaction.binom2)) # Some trend but not signif
 
-plot_model(reaction.binom, type="pred", back.transform=FALSE,
-           terms=c("date_s", "context"),
-           pred.type="re", #predictions are conditioned on random effects ; alternative: fixed effects only "fe"
-           title="",
-           axis.title=c("date", "Probability of reaction"),
-           #axis.lim=,
-           show.data = TRUE,
-           se=TRUE)+
-  theme_sjplot2()
+# Test fixed effects:
+#-->Wald Test
+#=coefficient estimates are expected to be normally distributed (z-test)
+summary(reaction.binom2) # sealing, context and date are still signif
+
+# r2 values:
+r.squaredGLMM(reaction.binom2)
+#########marginal:0.212
+#########conditional:0.347
+
+
+# partial r2
+r2beta(reaction.binom2, method="sgv")
+#-->gives a different marginal r2=0.154
+
 
 #########################
 # Fit Binomial 2
@@ -582,8 +527,3 @@ performance::r2_nakagawa(Paras)
 # but may not be quite reliable (they seem too high to me for a non-signif model):
 #########marginal:0.339
 #########conditional:0.542
-
-#Represent coefs with CI in a plot:
-plot_model(Paras, type="est", show.values = TRUE, value.offset = .3, title="",
-           vline.color="grey")+
-  theme_sjplot2()
