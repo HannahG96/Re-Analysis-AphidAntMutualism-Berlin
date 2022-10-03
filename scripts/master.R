@@ -2,8 +2,8 @@
 ######################################################
 
 # If you are not using an Rproject :
-# working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis-AphidAntMutualism-Berlin"
-# setwd(working_dir)
+working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis-AphidAntMutualism-Berlin"
+setwd(working_dir)
 
 
 #LOAD PACKAGES

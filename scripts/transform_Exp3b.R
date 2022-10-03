@@ -30,6 +30,7 @@ Exp3b[which(Exp3b[,"aggr"]>=5),"aggr_score"]<-1 #attack by bite
 Exp3b[which(Exp3b[,"JUMP"]==1),"aggr_score"]<-2 #attack by jump
 
 ###Exclude all ants showing explorative(=3)/tolerant(=2) behaviours=artificial stimuli was not successful
+OUTs<-Exp3b[which(is.na(Exp3b[,"aggr_score"])==T),]
 Exp3b<-Exp3b[which(is.na(Exp3b[,"aggr_score"])==F),] #47 ants excluded
 
 

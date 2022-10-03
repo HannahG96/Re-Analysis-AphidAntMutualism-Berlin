@@ -55,6 +55,60 @@ paste(c(round(mean(Aphid_density$Seal_500)-
                         sd(Aphid_density$Seal_500))),
       "%", sep = "")
 
+###ALTERNATIVE GRAPH OF APHID DENSITIES~SEALING*DATE
+#model fit:
+Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
+            date_s:meanAnt.mean_s +
+            date_s:Seal_500_s +
+            meanAnt.mean_s:Seal_500_s + 
+            (1|plantPop),
+          data=Aphid_density)
+#predicted data:
+newd <- data.frame(
+  unique(Aphid_density[, c("Seal_500_s","Seal_500","date_s",
+                              "date", "date_s","meanAnt.mean_s","meanAnt.mean")]),
+  plant = NA,
+  plot.simple = NA,
+  plantPop = NA,
+  date = NA)
+
+newd$predicted <- predict(Aph,
+                          newdata=newd,
+                          type = "response",re.form = NA)
+#add categoric urbanisation variable:
+newd$urb_level<-NA
+newd[which(newd[,"Seal_500"]<60),"urb_level"]<-"Medium\n[10-40%]"
+newd[which(newd[,"Seal_500"]<10),"urb_level"]<-"Low\n[< 10%]"
+newd[which(newd[,"Seal_500"]>60),"urb_level"]<-"High\n[>60%]"
+newd$urb_level<-factor(newd$urb_level,levels=c("Low\n[< 10%]","Medium\n[10-40%]","High\n[>60%]"))
+#produce plot
+
+#open graphical device:
+#-->1.5 column width
+pdf(file="figures/aphid_density2.pdf",         # File name
+    width = 5, height = 4, # Width and height in inches
+    bg = "white",          # Background color
+    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
+
+ggplot(data = newd, mapping = aes(x=date, y=predicted)) +
+  geom_smooth(method = "lm",color="gray21",se = FALSE,size=0.75) +
+  geom_point(size=1.75, aes(color=Seal_500)) +
+  theme_minimal()+
+  scale_color_viridis(option="mako", begin=0.1, end=0.9, direction=-1)+
+  labs(color="% Sealing")+
+  theme(axis.text.x = element_text(angle = 45, size=7, vjust = 1, hjust=1),
+        legend.title=element_text(size=10, face="bold", color="gray21"),
+        axis.title.y=element_text(size=10, face="bold", color="gray21"),
+        axis.title.x=element_text(size=10, face="bold", color="gray21"),
+        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
+        panel.grid.minor = element_blank(),
+        strip.text.x = element_text(face="bold", size=10, color="gray21"),
+        strip.background = element_blank())+
+  xlab("Date") +
+  ylab("sqrt(Aphid density (nb./mm))") +
+  facet_grid(~urb_level)
+# close the graphical device:
+dev.off()
 
 ######################################################################
 # VISUALIZE ANT AGGRESSIVITY #####

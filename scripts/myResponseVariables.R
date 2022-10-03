@@ -72,7 +72,20 @@ Ant_aggressivity$attack.given.react[Ant_aggressivity$aggr_score ==0] <- NA
 # (NOT excluding cases of no reaction)
 Ant_aggressivity$attack <- as.numeric(Ant_aggressivity$aggr_score ==2)
 
-### 6.PROPORTION OF PARASITISM ####
+#Excluded curious/tolerant behaviours: test for homogeneous distribution along urban gradient
+OUTs<-merge(expVar,OUTs[,c("plot.simple", "plant", "date","context","aggr_score")])
+OUTs$aggr_score<-1
+OUTS<-summaryBy(formula=aggr_score~plantPop+Seal_500,data=OUTs,FUN=sum)
+plot(aggr_score.sum~Seal_500,data=OUTS)
+hist(OUTS$aggr_score.sum)
+unsignif<-glm(aggr_score.sum ~ Seal_500,data=OUTS,family="poisson")
+summary(unsignif)#NOT SIGNIFICANT, p=0.1245  
+
+#Look at the model summary:
+#-->t-tests use Satterthwaite's method
+summary(AntAtt) # not the same results as the partial R2 here...
+
+### 6.PROPORTION OF PARASITISM ###OUTS### 6.PROPORTION OF PARASITISM ####
 
 #---> MAUD ADDITION : get the actual number of parasitised, to fit a nice binomial:
 
