@@ -110,9 +110,49 @@ ggplot(data = newd, mapping = aes(x=date, y=predicted)) +
 # close the graphical device:
 dev.off()
 
+###ALTERNATIVE 2 GRAPHS OF APHID DENSITIES / ANT NUMBERS ~ DATE ###################
+#Prepare data:
+newd<-as.data.frame(matrix(NA,nrow=0,ncol=4,dimnames=list(NULL,c("response","date","Seal_500","value"))))
+aphids<-Aphid_density[,c("date","Seal_500","N_aphid.mm")]
+aphids<-cbind(data.frame(response=rep("Aphid density\n(nb./mm)",nrow(Aphid_density))),aphids)
+colnames(aphids)<-c("response","date","Seal_500","value")
+ants<-Aphid_density[,c("date","Seal_500","meanAnt.mean")]
+ants<-cbind(data.frame(response=rep("Ant number",nrow(Aphid_density))),ants)
+colnames(ants)<-c("response","date","Seal_500","value")
+newd<-rbind(newd,aphids,ants)
+dummy<-data.frame(response="Aphid density\n(nb./mm)",date=Aphid_density[1,"date"],
+                  Seal_500=Aphid_density[1,"Seal_500"],value=5)
+#Plot the data:
+newd$response<-factor(newd$response,levels=c("Aphid density\n(nb./mm)","Ant number"))
+dummy$response<-factor(dummy$response,levels=c("Aphid density\n(nb./mm)","Ant number"))
+#open graphical device:
+#-->1.5 column width
+pdf(file="figures/aphid_density3.pdf",         # File name
+    width = 6, height = 4, # Width and height in inches
+    bg = "white",          # Background color
+    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
+
+ggplot(data = newd, aes(x=date, y=value, color = Seal_500)) +
+  geom_smooth(method = "lm",color="gray21",se = FALSE,size=0.75) +
+  geom_point(size=1.75, aes(color=Seal_500)) +
+  geom_point(data=dummy,mapping=aes(x=date,y=value),color="white")+
+  theme_minimal()+
+  scale_color_viridis(option="mako", begin=0.1, end=0.9, direction=-1)+
+  labs(color="% Sealing")+
+  theme(axis.text.x = element_text(angle = 45, size=7, vjust = 1, hjust=1),
+        legend.title=element_text(size=10, face="bold", color="gray21"),
+        axis.title.y=element_blank(),
+        axis.title.x=element_text(size=10, face="bold", color="gray21"),
+        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
+        panel.grid.minor = element_blank(),
+        strip.text.x = element_text(face="bold", size=10, color="gray21"),
+        strip.background = element_blank())+
+  xlab("Date") +
+  facet_wrap(~response,ncol=2,scales="free")
+# close the graphical device:
+dev.off() 
 ######################################################################
 # VISUALIZE ANT AGGRESSIVITY #####
-
 #Prepare data:
 #-->proportion of aggressive reacting ants
 a<-Ant_aggressivity
