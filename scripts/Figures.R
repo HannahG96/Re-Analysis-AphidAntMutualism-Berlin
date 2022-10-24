@@ -6,6 +6,7 @@ library("viridis")
 ###VISUALIZE INTERACTION OF APHID DENSITY WITH SEALING
 # Interaction plot of partial residuals:
 
+
 #Fit the model with square-root transformation to obtain partial residuals:
 Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
             date_s:meanAnt.mean_s +
@@ -13,6 +14,34 @@ Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
             meanAnt.mean_s:Seal_500_s + 
             (1|plantPop),
           data=Aphid_density)
+
+interactions::interact_plot(Aph,
+                            pred = Seal_500, 
+                            modx = DOY,
+                            legend.main = "% Sealing",
+                            plot.points = TRUE , 
+                            interval = TRUE, 
+                            robust = TRUE,
+                            int.type = "confidence",
+                            y.label = "Sealing",
+                            x.label = "Aphid density (nb./mm)",
+                            colors = NULL,
+                            point.size = 1.5,
+                            line.thickness = 1,
+                            vary.lty = FALSE,
+                            partial.residuals = FALSE,
+                            facet.modx = FALSE)
+
+# Test effect of outlier plot with max sealing:
+sub_df <- Aphid_density[-which(Aphid_density$plot.simple == "Nl-200"),]
+sub_Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
+                date_s:meanAnt.mean_s +
+                date_s:Seal_500_s +
+                meanAnt.mean_s:Seal_500_s + 
+                (1|plantPop),
+              data=sub_df)
+summary(sub_Aph)  # No more interaction effect
+
 
 #open graphical device:
 #-->2 column width
@@ -23,13 +52,13 @@ pdf(file="figures/aphid_density.pdf",         # File name
 
 #create figure:
 interactions::interact_plot(Aph,
-                            pred = date_s, 
-                            modx = Seal_500_s,
+                            pred = DOY, 
+                            modx = Seal_500,
                             legend.main = "% Sealing",
                             plot.points = TRUE , 
                             interval = TRUE, 
                             robust = TRUE,
-                            int.type = "confidence",
+                            int.type = "prediction",
                             x.label = "Date (standardized)",
                             y.label = "Aphid density (nb./mm)",
                             colors = NULL,
@@ -37,7 +66,7 @@ interactions::interact_plot(Aph,
                             line.thickness = 1,
                             vary.lty = FALSE,
                             partial.residuals = FALSE,
-                            facet.modx = TRUE,
+                            facet.modx = FALSE,
                             modx.labels = c("- 1SD (= 7%)",
                                             "Mean %Sealing (= 25%)",
                                             "+ 1SD (= 42%)")
