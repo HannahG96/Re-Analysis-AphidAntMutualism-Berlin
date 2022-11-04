@@ -59,7 +59,6 @@ Group_reaction<-merge(expVar, Exp3a[, c("plot.simple", "plant", "date", "N_ant",
 Ant_aggressivity<-merge(expVar, Exp3b[, c("plot.simple", "plant", "date","context","aggr_score")],
                         all=F)
 Ant_aggressivity$context<-as.factor(Ant_aggressivity$context)
-
 #reaction vs. no reaction
 Ant_aggressivity$reaction <- as.numeric(Ant_aggressivity$aggr_score >0)
 
@@ -83,7 +82,7 @@ summary(unsignif)#NOT SIGNIFICANT, p=0.1245
 
 #Look at the model summary:
 #-->t-tests use Satterthwaite's method
-summary(AntAtt) # not the same results as the partial R2 here...
+#summary(AntAtt) # not the same results as the partial R2 here...
 
 ### 6.PROPORTION OF PARASITISM ###OUTS### 6.PROPORTION OF PARASITISM ####
 

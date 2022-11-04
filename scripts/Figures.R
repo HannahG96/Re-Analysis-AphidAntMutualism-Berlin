@@ -32,17 +32,6 @@ interactions::interact_plot(Aph,
                             partial.residuals = FALSE,
                             facet.modx = FALSE)
 
-# Test effect of outlier plot with max sealing:
-sub_df <- Aphid_density[-which(Aphid_density$plot.simple == "Nl-200"),]
-sub_Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
-                date_s:meanAnt.mean_s +
-                date_s:Seal_500_s +
-                meanAnt.mean_s:Seal_500_s + 
-                (1|plantPop),
-              data=sub_df)
-summary(sub_Aph)  # No more interaction effect
-
-
 #open graphical device:
 #-->2 column width
 pdf(file="figures/aphid_density.pdf",         # File name
@@ -437,14 +426,14 @@ ggplot(Aphid_density, aes(y=N_aphid.mm, x=meanAnt.mean, color=season))+
   geom_point(size=1.75, aes(shape=season)) +
   scale_color_manual("", values=c("black", "black","#90A4ADFF"),
                      breaks=c("begin", "mid", "end"),
-                     labels=c("Begin of August", "Mid of August", "End of August"))+
+                     labels=c("Start of August", "Mid of August", "End of August"))+
   scale_shape_manual("", values=c(16,1,16),
                      breaks=c("begin", "mid", "end"),
-                     labels=c("Begin of August", "Mid of August", "End of August"))+
+                     labels=c("Start of August", "Mid of August", "End of August"))+
   geom_smooth(aes(linetype=season),method="lm",se=FALSE, size=0.8)+
   scale_linetype_manual("", values=c("solid", "dotted","solid"),
                     breaks=c("begin", "mid", "end"),
-                    labels=c("Begin of August", "Mid of August", "End of August"))+
+                    labels=c("Start of August", "Mid of August", "End of August"))+
   theme(legend.title=element_text(size=10, face="bold", color="gray21"),
         axis.title.y=element_text(size=10, face="bold", color="gray21"),
         axis.title.x=element_text(size=10, face="bold", color="gray21"),

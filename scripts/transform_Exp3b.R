@@ -33,5 +33,3 @@ Exp3b[which(Exp3b[,"JUMP"]==1),"aggr_score"]<-2 #attack by jump
 OUTs<-Exp3b[which(is.na(Exp3b[,"aggr_score"])==T),]
 Exp3b<-Exp3b[which(is.na(Exp3b[,"aggr_score"])==F),] #47 ants excluded
 
-
-

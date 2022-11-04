@@ -89,15 +89,30 @@ lmerTest::ranova(Aph) # Shows that the random effect does not improve your model
 r.squaredGLMM(Aph)
 #########marginal:0.5276438    ----> now 0.467 with square root transformation
 #########conditional:0.6599617 ----> now 0.691 with square root transformation
-
 #Calculate partial R2 for each predictor (only fixed effects):
 r2beta(Aph, method="nsj")
-
 # dredge + model avg to check if the same variables come out:
 d.Aph <- dredge(Aph, rank = "AICc", REML = FALSE)
 model.avg(d.Aph, subset = delta <2) # all variables kept in best 3 models
 # We could do this for each model to provide an alternative method
 # in an appendix if needed...
+######### APHID DENSITY EXCLUDING OUTLIER PLOT: Nl-200
+# Test effect of outlier plot with max sealing:
+sub_df <- Aphid_density[-which(Aphid_density$plot.simple == "Nl-200"),]
+sub_Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
+                date_s:meanAnt.mean_s +
+                date_s:Seal_500_s +
+                meanAnt.mean_s:Seal_500_s + 
+                (1|plantPop),
+              data=sub_df)
+summary(sub_Aph)  # No more interaction effect
+#Look at diagnostics:
+res <- DHARMa::simulateResiduals(sub_Aph) # using package DHARMa for testing residuals
+plot(res) # Looks all good, no significant deviations anywhere
+#Calculate the marginal (= fixed effect) and conditional (= fixed + random effects) r2 values:
+r.squaredGLMM(sub_Aph)
+#Calculate partial R2 for each predictor (only fixed effects):
+r2beta(sub_Aph, method="nsj")
 
 ### Ant NUMBER############################################################################
 
@@ -370,7 +385,7 @@ Aggr<-lmer(aggr_score~context+date_s+N_aphid_s+Seal_500_s+context:date_s+context
 # Test residuals:
 hist(residuals(Aggr)) # nice!
 library(DHARMa)
-res <- simulateResiduals(Aggr )
+res <- simulateResiduals(Aggr)
 plot(res) # NOT LOOKING GOOD! => cannot use these score in a linear model.
 
 # Test fixed effects just to see:
@@ -382,9 +397,7 @@ summary(Aggr)
 # 2: probability of aggressive reaction given a reaction! (score = 2)
 # 3: probability of aggressive reaction! (score = 2)
 
-glimpse(Ant_aggressivity) #check data structure
 Ant_aggressivity$reaction<-as.factor(Ant_aggressivity$reaction)
-
 # Fit Binomial 1
 reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
                 context:date_s + context:N_aphid_s + context:Seal_500_s +
@@ -395,7 +408,7 @@ reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s +
               data=Ant_aggressivity)
 
 # Test residuals:
-plot(res <- simulateResiduals(reaction.binom )) # Not too bad looking even if slight trend
+plot(res <- simulateResiduals(reaction.binom)) # Not too bad looking even if slight trend
 
 # Test fixed effects:
 summary(reaction.binom) # sealing, context and date are still signif
@@ -411,17 +424,15 @@ r.squaredGLMM(reaction.binom)
 #########conditional:0.35
 
 #Alternative: GLMER (to obtain partial rsquared)
-data.aggressivity<-Ant_aggressivity[,c(1:4,11,13,16,17,19)]#extract only relevant data (=remove NAs)
-data.aggressivity$date<-as.factor(data.aggressivity$date) #factorize date: used as a grouping variable
+#Model1: aggressive (1) vs. avoidance (0)
 reaction.binom2<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
                           context:date_s + context:N_aphid_s + context:Seal_500_s +
                           date_s:N_aphid_s + date_s:Seal_500_s +
                           N_aphid_s:Seal_500_s + 
                           (1|plantPop/date),
                         family = binomial,
-                        data=data.aggressivity,
+                        data=Ant_aggressivity,
                        glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
-
 # Test residuals:
 plot(res <- simulateResiduals(reaction.binom2)) # Some trend but not signif
 
@@ -439,6 +450,53 @@ r.squaredGLMM(reaction.binom2)
 # partial r2
 r2beta(reaction.binom2, method="sgv")
 #-->gives a different marginal r2=0.154
+
+
+#Model1b: aggressive (1) vs. avoidance/exploration/tolerance (0)
+OUTs$aggr_score<-0
+data.aggressivity<-rbind(Ant_aggressivity[,1:18], OUTs[,colnames(Ant_aggressivity)[1:18]])
+data.aggressivity$reaction <- as.numeric(data.aggressivity$aggr_score >0)
+data.aggressivity$reaction<-as.factor(data.aggressivity$reaction)
+reaction.binom2b<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s +
+                         context:date_s + context:N_aphid_s + context:Seal_500_s +
+                         date_s:N_aphid_s + date_s:Seal_500_s +
+                         N_aphid_s:Seal_500_s + 
+                         (1|plantPop),
+                       family = binomial,
+                       data=data.aggressivity,
+                       glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+#-->if all observations are included (N=379), the nested random effect `plantPop/date`gives a boundary fit
+#=replaced by `plantPop` random effect
+# Test residuals:
+plot(res <- simulateResiduals(reaction.binom2b)) 
+
+#Model2: avoidance (0) vs. tolerance/exploration (1)
+data.aggressivity<-Ant_aggressivity[which(Ant_aggressivity$reaction==0),1:18]
+OUTs$aggr_score<-1
+data.aggressivity<-rbind(data.aggressivity, OUTs[,colnames(Ant_aggressivity)[1:18]])
+data.aggressivity$reaction <- as.numeric(data.aggressivity$aggr_score >0)
+data.aggressivity$reaction<-as.factor(data.aggressivity$reaction)
+reaction.binom3<-glmer(reaction ~ Seal_500_s +
+                         context + date_s + N_aphid_s + Seal_500_s + 
+                         context:date_s + context:N_aphid_s + context:Seal_500_s +
+                         date_s:N_aphid_s + date_s:Seal_500_s +
+                         N_aphid_s:Seal_500_s + 
+                          (1|plantPop),
+                        family = binomial,
+                        data=data.aggressivity,
+                        glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+#-->boundary fit
+
+# Test residuals:
+plot(res <- simulateResiduals(reaction.binom3)) # Some trend but not signif
+
+# Test fixed effects:
+#-->Wald Test
+#=coefficient estimates are expected to be normally distributed (z-test)
+summary(reaction.binom3) # sealing, context and date are still signif
+#->sealing is marginally significant
+# r2 values:
+r.squaredGLMM(reaction.binom3)
 
 
 #########################
