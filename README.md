@@ -1,6 +1,6 @@
 # Assessing changes in an ant-aphid mutualism across urban grasslands
 
-This repository contains the data and r code to analyse changes in aphid and ant populations and behaviour along a gradient of urbanisation in Berlin, Germany. 
+This repository contains the data and R code to analyse changes in aphid and ant populations and behaviour along a gradient of urbanisation in Berlin, Germany. 
 This is a work in progress associated to a publication in preparation.
 
 Abstract:
