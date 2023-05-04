@@ -1,4 +1,4 @@
-###MODEL RESPONSES###
+###MODEL RESPONSE VARIABLES###
 #Mixed Effect Models=a mixed effects model yields a variance associated with each random factor and 
 #the residual variance, so its not entirely clear which to use when calculating the Rsquared
 #########Shinichi Nakagawa and Holger Schielzeth-method:
@@ -45,7 +45,7 @@
 #https://www.flutterbys.com.au/stats/tut/tut10.5a.html 
 
 # FOR DREDGE:
-options(na.action = "na.fail")
+#options(na.action = "na.fail")
 
 ### APHID DENSITY#############################################################################
 glimpse(Aphid_density)#check data structure
@@ -92,10 +92,11 @@ r.squaredGLMM(Aph)
 #Calculate partial R2 for each predictor (only fixed effects):
 r2beta(Aph, method="nsj")
 # dredge + model avg to check if the same variables come out:
-d.Aph <- dredge(Aph, rank = "AICc", REML = FALSE)
-model.avg(d.Aph, subset = delta <2) # all variables kept in best 3 models
+#d.Aph <- dredge(Aph, rank = "AICc", REML = FALSE)
+#model.avg(d.Aph, subset = delta <2) # all variables kept in best 3 models
 # We could do this for each model to provide an alternative method
 # in an appendix if needed...
+
 ######### APHID DENSITY EXCLUDING OUTLIER PLOT: Nl-200
 # Test effect of outlier plot with max sealing:
 sub_df <- Aphid_density[-which(Aphid_density$plot.simple == "Nl-200"),]

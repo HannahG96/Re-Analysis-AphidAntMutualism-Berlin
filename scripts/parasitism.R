@@ -9,15 +9,6 @@
 #-->1 obs excluded due to lack of proportion of parasitism data (Nh_04 Alpha-->first system studied)
 #=Total of only 21 obs
 
-#load packages
-library("data.table")#import data as data frame
-library("doBy")#calculate summary tables
-library("ggplot2")#produce nice figures
-library("writexl")#export data frame to excel
-#set working directory
-working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis-AphidAntMutualism-Berlin"
-setwd(working_dir)
-
 ##################################
 #IMPORT AND PREPARE DATA
 #-->Df indicating for each aphid colony: (i)maximal proportion of mummies, 
@@ -147,64 +138,49 @@ chisq.test(X3)#X-squared = 9.6667, df = 3, p-value = 0.02162
 #-->SIGNIFICANT
 
 ##########################################################
-#FIGURES
-P4$survival<-as.character(P4$survival)
-P4[which(P4[,"survival"]=="1"),"survival"]<-"survived"
-P4[which(P4[,"survival"]=="0"),"survival"]<-"extinct"
-P4[which(is.na(P4[,"survival"])==T),"survival"]<-"unknown\noutcome"
-P4$survival<-factor(P4$survival,level=c("survived","extinct","unknown\noutcome"))
-P4$is.paras<-factor(P4$is.paras, levels=c(1,0,NA))
+#Explore parasitism in plots: 
+
+#P4$survival<-as.character(P4$survival)
+#P4[which(P4[,"survival"]=="1"),"survival"]<-"survived"
+#P4[which(P4[,"survival"]=="0"),"survival"]<-"extinct"
+#P4[which(is.na(P4[,"survival"])==T),"survival"]<-"unknown\noutcome"
+#P4$survival<-factor(P4$survival,level=c("survived","extinct","unknown\noutcome"))
+#P4$is.paras<-factor(P4$is.paras, levels=c(1,0,NA))
 
 #Figure 1: 
-ggplot(P4, aes(x=survival, fill=is.paras))+
-  theme_minimal()+
-  geom_bar(position="stack", width = 0.75, color="#90A4ADFF")+
-  scale_fill_manual("", values=c("navy","darkgoldenrod","lightgrey"),
-                    breaks=c(1,0,NA),labels=c("parasitized","healthy","no available data"))+
-  scale_y_continuous(breaks=c(1:15))+
-  theme(axis.text.x=element_text(angle=20,face="bold", color="#90A4ADFF",size=11),
-        axis.title.x=element_blank(),
-        axis.text.y=element_text(face="bold", color="#90A4ADFF"),
-        axis.title.y=element_text(face="bold"),
-        title=element_text(face="bold", size=8))+
-  ggtitle("Population dynamics of the 29 studied aphid colonies")
+#ggplot(P4, aes(x=survival, fill=is.paras))+
+ # theme_minimal()+
+ # geom_bar(position="stack", width = 0.75, color="#90A4ADFF")+
+ # scale_fill_manual("", values=c("navy","darkgoldenrod","lightgrey"),
+ #                   breaks=c(1,0,NA),labels=c("parasitized","healthy","no available data"))+
+ # scale_y_continuous(breaks=c(1:15))+
+ # theme(axis.text.x=element_text(angle=20,face="bold", color="#90A4ADFF",size=11),
+ #       axis.title.x=element_blank(),
+ #       axis.text.y=element_text(face="bold", color="#90A4ADFF"),
+ #       axis.title.y=element_text(face="bold"),
+  #      title=element_text(face="bold", size=8))+
+  #ggtitle("Population dynamics of the 29 studied aphid colonies")
 
   
   
 #Figure 2: 
-P5<-P4[which(P4[,"is.paras"]==1),]
-P5$Seal_level<-P5$Seal_500
-P5[which(P5[,"Seal_500"]<20),"Seal_level"]<-"low sealing\n(<20%)"
-P5[which(P5[,"Seal_500"]>30),"Seal_level"]<-"medium-high sealing\n(30-60%)"
-ggplot(P5, aes(x=Seal_level, fill=survival))+
-  theme_minimal()+
-  geom_bar(position="stack", width = 0.75, color="#90A4ADFF")+
-  scale_fill_manual("", values=c("cadetblue","burlywood4","lightgrey"),
-                    breaks=c("survived","extinct","unknown\noutcome"))+
-  scale_y_continuous(breaks=c(1:15))+
-  theme(axis.text.x=element_text(angle=20,face="bold", color="#90A4ADFF",size=11),
-        axis.title.x=element_blank(),
-        axis.text.y=element_text(face="bold", color="#90A4ADFF"),
-        axis.title.y=element_text(face="bold"),
-        title=element_text(face="bold", size=8))+
-  ggtitle("Population dynamics of the 12\nparasitized aphid colonies for two levels of sealing")
+#P5<-P4[which(P4[,"is.paras"]==1),]
+#P5$Seal_level<-P5$Seal_500
+#P5[which(P5[,"Seal_500"]<20),"Seal_level"]<-"low sealing\n(<20%)"
+#P5[which(P5[,"Seal_500"]>30),"Seal_level"]<-"medium-high sealing\n(30-60%)"
+#ggplot(P5, aes(x=Seal_level, fill=survival))+
+#  theme_minimal()+
+#  geom_bar(position="stack", width = 0.75, color="#90A4ADFF")+
+#  scale_fill_manual("", values=c("cadetblue","burlywood4","lightgrey"),
+#                    breaks=c("survived","extinct","unknown\noutcome"))+
+#  scale_y_continuous(breaks=c(1:15))+
+#  theme(axis.text.x=element_text(angle=20,face="bold", color="#90A4ADFF",size=11),
+#        axis.title.x=element_blank(),
+#        axis.text.y=element_text(face="bold", color="#90A4ADFF"),
+#        axis.title.y=element_text(face="bold"),
+#        title=element_text(face="bold", size=8))+
+#  ggtitle("Population dynamics of the 12\nparasitized aphid colonies for two levels of sealing")
 
-#Produce Figure3
-P4[which(is.na(P4[,"prop_paras.cat"])==TRUE),"prop_paras.cat"]<-"no data"
-ggplot(P4, aes(x=prop_paras.cat, fill=survival))+
-  theme_minimal()+
-  geom_bar(position="stack", width = 0.75, color="black")+
-  scale_fill_manual("", values=c("white","#90A4ADFF","lightgrey"),
-                    breaks=c("survived","extinct","unknown\noutcome"))+
-  scale_y_continuous(breaks=c(1:25))+
-  theme(axis.text.x=element_text(angle=20,face="bold", color="#90A4ADFF",size=11),
-        axis.text.y=element_text(face="bold", color="#90A4ADFF"),
-        axis.title.y=element_text(face="bold"),
-        axis.title.x=element_text(face="bold"),
-        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
-        panel.grid.minor = element_blank())+
-  ylab("Count")+
-  xlab("Proportion of mummies")
 ##################################
 #EXPORT PARASITISM DATA
 parasitism.data<-Met_plant[,c("plot.simple","plant","date","prop_paras")]
