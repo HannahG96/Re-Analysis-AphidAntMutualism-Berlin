@@ -28,6 +28,9 @@ library(DHARMa)  # cool package for testing residuals of model
 library(broom.mixed) # format the table of model coefficients and get CI
 library(dotwhisker) # represent the model coefficients with CI
 #library(bestNormalize) # find the best transformation for normalizing response variable
+library("viridis")#color palette for figures
+library("scales")#obtain color palette that is consistent with other plots
+library("writexl")#export data frame to excel
 
 #IMPORT DATA
 source("scripts/import data.R")
@@ -43,6 +46,9 @@ source("scripts/transform_Exp3b.R")
 source("scripts/myResponseVariables.R")
 
 #ANALYSE DATA
-# source("models.R")
+setwd(working_dir)
+source("scripts/models_main.R")
+source("scripts/parasitism.R")
 
-#FIGURES
+#PRODUCE FIGURES
+source("scripts/figures_main.R")

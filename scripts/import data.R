@@ -19,7 +19,7 @@ Exp3a <-fread(file = "data/Exp3a.csv", na.strings = "kA", dec = "," , data.table
 Exp3b <-fread(file = "data/Exp3b.csv", na.strings = "kA", dec = "," , data.table = FALSE)
 
 #behavioural sequences
-activ_seq_raw <-fread(file="data/activity sequence.csv", data.table = FALSE, check.names = TRUE)
+activ_seq_raw <-fread(file="data/activity_sequence.csv", data.table = FALSE, check.names = TRUE)
   #correct some typing errors that I noted now:
   activ_seq_raw[which(activ_seq_raw[,1]=="E43"),1]<-"E44"#record name as which it appears in Exp1 table
   activ_seq_raw[which(activ_seq_raw[,1]=="E5"),1]<-"E4" #record name as which it appears in Exp1 table
