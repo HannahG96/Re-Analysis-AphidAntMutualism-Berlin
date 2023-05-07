@@ -76,14 +76,14 @@ To model ant-per-aphid ratio we fit a LMM from the package *lmer* considering da
                N_aphid_s:Seal_500_s +
                (1|plantPop),
              data=Ant_attendance)`<br />
-To model tending time we fit a beta regression model from the package *glmmTMB* considering date ("date_s"), aphid number ("N_aphid_s"), sealing ("Seal_500_s") and all two-way interactions as fixed effects, and used host plant ("1|plantPop") as random effect:<br />    
+To model tending time we fit a beta regression model from the package *glmmTMB* considering date ("date_s"), aphid number ("N_aphid_s"), sealing ("Seal_500_s") and all two-way interactions as fixed effects, and used host plant ("1|plantPop") as random effect:  
 `Tend.betareg <- glmmTMB(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
                           date_s:N_aphid_s + date_s:Seal_500_s +
                           N_aphid_s:Seal_500_s +
                           (1|plantPop),
                         data= tmp,
                         family=beta_family)`<br />
-To model ant aggressivity as a binary response (aggressive ant reaction vs. avoidance) we fit a binomial GLMM from the package *lmer* considering date ("date_s"), aphid number ("N_aphid_s"), sealing ("Seal_500_s"), and the context of disturbance ("context": tending aphids vs. other behaviour) and selected two-way interactions as fixed effects, and included date nested into host plant ("1|plantPop/date") as random effect:<br />  
+To model ant aggressivity as a binary response (aggressive ant reaction vs. avoidance) we fit a binomial GLMM from the package *lmer* considering date ("date_s"), aphid number ("N_aphid_s"), sealing ("Seal_500_s"), and the context of disturbance ("context": tending aphids vs. other behaviour) and selected two-way interactions as fixed effects, and included date nested into host plant ("1|plantPop/date") as random effect:  
 `reaction.binom<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
                         context:date_s + context:N_aphid_s + context:Seal_500_s +
                         date_s:N_aphid_s + date_s:Seal_500_s +
@@ -93,9 +93,9 @@ To model ant aggressivity as a binary response (aggressive ant reaction vs. avoi
                       data=Ant_aggressivity,
                       glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))`
 3. Apply a diagnostical test to check model residuals. We therefore applied the simulation-based diagnostic approach using functions of the package *DHARMa*:<br />
- `hist(residuals(model)) <br />
-res <- simulateResiduals(model)<br />
-plot(res) #if there is something wrong with the model, this is indicated in the residual plot`
+ `hist(residuals(model))` <br />
+`res <- simulateResiduals(model)`<br />
+`plot(res) #if there is something wrong with the model, this is indicated in the residual plot`
 4. Test for significant relationships between response and explanatory variables by looking at the model summary with the command `summary(model)`. This is done with a t-test that uses Satterthwaite's method for LMMs and with a Walt test (z-test) for beta regression models and binomial GLMMs.
 5. Compute the marginal (=describes the proportion of variance explained by the fixed factor(s) alone) and conditional Rsquared (=describes the proportion of variance explained by both the fixed and random factors) of the model using the command `r.squaredGLMM(model)` from the package *MuMIn*. 
 > Note that this command does not work for beta regression models.
