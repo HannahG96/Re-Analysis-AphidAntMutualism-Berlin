@@ -104,7 +104,7 @@ To model ant aggressivity as a binary response (aggressive ant reaction vs. avoi
 <br />
 
 Additionally, we performed chisquare-tests to explore how parasitism of the aphids affected the likelihood of survival vs. extinction of the aphid colony. These tests can be reproduced running the script [parasitism.R](scripts/parasitism.R). We run three tests asking the questions (1) were aphid colonies with signs of parasitism more prone to extinction than unparasitized, healthy aphid colonies?; were parasitized aphid colonies from low-medium urbanized study sites (<20% of sealed surfaces in a 500m buffer) more prone to extinction than parasitized aphid colonies from medium-high urbanized study sites (>30% of sealed surfaces in a 500m buffer)?; did aphid colonies which displayed >=10% of parasitized aphids all went extinct?
-The script prepares the data in a dataframe X for performing the chisquare-test. The tests is then applied running the command `chisq.test(X)`.
+The script prepares the data in three data vectors (X1, X2 and X3) that contain the information for performing the chisquare-tests, one for each data vector. Outcomes from the chisquare-tests can be reproduced running the command `chisq.test(X)` with X being the data vector.
 > Note that we excluded ant-aphid-host plant systems that were studied on the last visit of the study site from this analysis due to missing information about their survival/extinction.
 
 **Plotting the data**<br />
