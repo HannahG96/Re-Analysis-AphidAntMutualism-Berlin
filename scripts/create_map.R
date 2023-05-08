@@ -84,7 +84,7 @@ proj4string(berlin_districts)
             frame = FALSE)
 )
 # export as pdf
-pdf("figures/map of ant behaviour plots.pdf", height = 4, width =5)
+pdf("figures/StudySites.pdf", height = 4, width =5)
 map_ants
 dev.off()
 

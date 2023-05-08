@@ -189,7 +189,7 @@ dummy$response<-factor(dummy$response,levels=c("Aphid density\n(nb./mm)","Ant nu
 #open graphical device:
 #-->1.5 column width
 pdf(file="figures/aphid_density3.pdf",         # File name
-    width = 6, height = 4, # Width and height in inches
+    width = 6.5, height = 3, # Width and height in inches
     bg = "white",          # Background color
     colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
 
@@ -291,7 +291,7 @@ show_col(viridis_pal(option="mako", begin=0, end=1, direction=-1)(15))
 #open graphical device:
 #-->2 column width
 pdf(file="figures/ant_behaviour.pdf",         # File name
-    width = 7.2, height = 5, # Width and height in inches
+    width = 8.5, height = 4, # Width and height in inches
     bg = "white",          # Background color
     colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
 
@@ -329,6 +329,13 @@ P4$survival<-factor(P4$survival,level=c("survived","extinct","unknown\noutcome")
 P4$is.paras<-factor(P4$is.paras, levels=c(1,0,NA))
 P4[which(is.na(P4[,"prop_paras.cat"])==TRUE),"prop_paras.cat"]<-"no data"
 
+#open graphical device:
+#-->2 column width
+pdf(file="figures/parasitism.pdf",         # File name
+    width = 5, height = 4, # Width and height in inches
+    bg = "white",          # Background color
+    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
+
 ggplot(P4, aes(x=prop_paras.cat, fill=survival))+
   theme_minimal()+
   geom_bar(position="stack", width = 0.75, color="black")+
@@ -343,6 +350,9 @@ ggplot(P4, aes(x=prop_paras.cat, fill=survival))+
         panel.grid.minor = element_blank())+
   ylab("Count")+
   xlab("Proportion of mummies")
+
+# close the graphical device:
+dev.off() 
 ##############################################################################
 #Values for writing
 

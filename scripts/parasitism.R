@@ -18,7 +18,7 @@
 P1<-fread(file = "data/aphid_extinctions.csv", na.strings = "kA", dec = "," , data.table = FALSE)
 
 #Max proportion of parasitism of each colony
-source("scripts/import data.R")
+source("scripts/import_data.R")
 source("scripts/transform_Met_plant.R")
 P2<-as.data.frame(matrix(NA,nrow=0,ncol=3,dimnames=list(NULL,c("prop_paras","plot.simple","plant"))))
 Met_plant$ID<-paste(Met_plant$plot.simple, Met_plant$plant)

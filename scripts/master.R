@@ -33,7 +33,7 @@ library("scales")#obtain color palette that is consistent with other plots
 library("writexl")#export data frame to excel
 
 #IMPORT DATA
-source("scripts/import data.R")
+source("scripts/import_data.R")
 
 #FORMAT DATA
 source("scripts/transform_General_plot.R")
@@ -46,9 +46,9 @@ source("scripts/transform_Exp3b.R")
 source("scripts/myResponseVariables.R")
 
 #ANALYSE DATA
-setwd(working_dir)
 source("scripts/models_main.R")
 source("scripts/parasitism.R")
 
 #PRODUCE FIGURES
 source("scripts/figures_main.R")
+source("scripts/create_map.R")
