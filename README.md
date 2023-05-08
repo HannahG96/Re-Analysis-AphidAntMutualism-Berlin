@@ -40,10 +40,10 @@ The script [master.R](scripts/master.R) includes the entire code to reproduce th
 **Running the code step by step**
 > To avoid error messages, first load the packages mentioned in [master.R](scripts/master.R) and run the scripts in the below mentioned order. 
 
-**Importing the data** 
+**I-Importing the data** 
 - run [import_data.R](scripts/import_data.R) to upload the *.csv*-files of the raw data in form of data frames into your R environment.
 
-**Formatting the data** 
+**II-Formatting the data** 
 - run [transform_General_plot.R](scripts/transform_General_plot.R) to get a summary table of the field survey including the number of visits per study site ("visits.sum"), the number of sampling sessions per study site ("sampleSize.sum") and the number of studied ant-aphid-host plant systems per study site ("N_plant.sum").
 - run [transform_Met_plot_date.R](transform_Met_plot_date.R) to obtain the average temperature per sampling session ("mean.temp"), calculated based on three temperature measurements per sampling session.
 - run [transform_Met_plant.R](scripts/transform_Met_plant.R) to obtain the proportion of parasitized aphids (relative to the total number of counted aphids) per sampling session ("Prop_paras").
@@ -53,7 +53,7 @@ The script [master.R](scripts/master.R) includes the entire code to reproduce th
 - run [transform_Exp3b.R](scripts/transform_Exp3b.R) to obtain an estimate per sampling session of individual ant responses to a simulated attack using a needle. We tested ant responses to a simulated attack on 2-10 focal ants per sampling session. This script first classifies focal ants according to what the ant was doing prior the simulated attack ("context": tending aphids/other behaviour). It then categorizes the focal ant's reaction into a response with 3 outcomes ("aggr_score") based on its aggressivity score: avoidance (score 1 and 4) vs. aggressive reaction: biting (score 5-7 and "JUMP"=0) vs. aggressive reaction: jumping (score 5-7 and "JUMP"=1). (Note that in this step, observations of ants reacting with tolerance (score 2) and curiosity (score 3) were excluded from the further analysis - it resulted in 47 excluded observations.)
 - run [myResponseVariables.R](scripts/myResponseVariables.R) to produce a separate data frame for each response variable that includes the explanatory variables used to model the response. The set of response variables analysed with mixed effect models in this study consists of (1) the **aphid density** ("N_aphid.mm" - data frame: Aphid_density), (2) the average number of ants, i.e. **ant number** and (3) the **ant-per-aphid ratio** ("meanAnt.mean" and "AntperAphid.mean, respectively - data frame: Ant_attendance), (3) the proportion of time spent by caretakers into tending aphids, i.e. **tending time** ("aphid_IA.sum" - data frame: Tending_Time) and (4) the individual ant response to a simulated attack, i.e. **ant aggressivity** ("reaction" - data frame: Ant_aggressivity). The set of explanatory variables consists of the percentage of sealed surfaces in a 500m buffer around the study site, i.e. sealing ("Seal_500"), the sampling date ("date"), the aphid number ("N_aphid"), the mean ant number ("meanAnt.mean"), the mean temperature ("mean.temp") and the plant phenology ("plantStade"). The autocorrelation between explanatory variables can be checked by running the command `ggpairs(expVar[,c("date","mean.temp","N_aphid","meanAnt.mean","Seal_500","plantStade")])`- *line 21 of the code*. This diagnostical check revealed autocorrelations and resulted in the exclusion of mean temperature and plant phenology from the set of explanatory variables. Continuous explanatory variables were then standardized (mean of 0; standard deviation of 1) running the command `expVar=mutate_at(expVar, vars(date,meanAnt.mean,N_aphid,prop_paras,mean.temp,Seal_500), funs(s = as.numeric( scale(.) ) ) )` - *line 29 of the code*.
 
-**Analysing the data**<br />
+**III-Analysing the data**<br />
 <br />
 The script [models_main.R] includes the code that was run to obtain the statistics reported in this study. The analysis of each response variable was performed in the same manner:
 1. Check for normal distribution of the response (only necessary for continuous response variables) by plotting the response in form of a histogram - `hist(ResponseVariable)`. If necessary, transform the response to achieve normal distribution (we square root-transformed aphid density and log-transformed the ant number and the ant-per-aphid ratio).
@@ -65,17 +65,20 @@ To model aphid density we fit a LMM from the package *lmer* considering date ("d
             meanAnt.mean_s:Seal_500_s + 
             (1|plantPop),
           data=Aphid_density)`<br />
+          <br />
 To model ant number we fit a LMM from the package *lmer* considering date ("date_s"), aphid number ("N_aphid_s"), sealing ("Seal_500_s") and all two-way interactions as fixed effects, and used host plant ("1|plantPop") as random effect:<br />
 `Ant.nb<-lmer(log(meanAnt.mean)~date_s + N_aphid_s + Seal_500_s +  
                date_s:N_aphid_s + date_s:Seal_500_s +
                N_aphid_s:Seal_500_s +
                (1|plantPop), data=Ant_attendance)`<br />
+               <br />
 To model ant-per-aphid ratio we fit a LMM from the package *lmer* considering date ("date_s"), aphid number ("N_aphid_s"), sealing ("Seal_500_s") and all two-way interactions as fixed effects, and used host plant ("1|plantPop") as random effect:<br />
 `AntAtt<-lmer(log(AntperAphid.mean) ~ date_s + N_aphid_s + Seal_500_s +  
                date_s:N_aphid_s + date_s:Seal_500_s +
                N_aphid_s:Seal_500_s +
                (1|plantPop),
              data=Ant_attendance)`<br />
+             <br />
 To model tending time we fit a beta regression model from the package *glmmTMB* considering date ("date_s"), aphid number ("N_aphid_s"), sealing ("Seal_500_s") and all two-way interactions as fixed effects, and used host plant ("1|plantPop") as random effect:  
 `Tend.betareg <- glmmTMB(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
                           date_s:N_aphid_s + date_s:Seal_500_s +
@@ -83,6 +86,7 @@ To model tending time we fit a beta regression model from the package *glmmTMB* 
                           (1|plantPop),
                         data= tmp,
                         family=beta_family)`<br />
+                        <br />
 To model ant aggressivity as a binary response (aggressive ant reaction vs. avoidance) we fit a binomial GLMM from the package *lmer* considering date ("date_s"), aphid number ("N_aphid_s"), sealing ("Seal_500_s"), and the context of disturbance ("context": tending aphids vs. other behaviour) and selected two-way interactions as fixed effects, and included date nested into host plant ("1|plantPop/date") as random effect:  
 `reaction.binom<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
                         context:date_s + context:N_aphid_s + context:Seal_500_s +
@@ -92,6 +96,7 @@ To model ant aggressivity as a binary response (aggressive ant reaction vs. avoi
                       family = binomial,
                       data=Ant_aggressivity,
                       glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))`
+                      <br />
 3. Apply a diagnostical test to check model residuals. We therefore applied the simulation-based diagnostic approach using functions of the package *DHARMa*:<br />
  `hist(residuals(model))` <br />
 `res <- simulateResiduals(model)`<br />
@@ -102,12 +107,13 @@ To model ant aggressivity as a binary response (aggressive ant reaction vs. avoi
 6. Compute partial Rsquared of the fixed effects using the command `r2beta(model, method="nsj")` for LMMs and the command `r2beta(model, method="sgv")` for GLMMs from the package *r2glmm*.
 > Note that these commands do not work for beta regression models.
 <br />
-
+The results from modeling are summarized in the excel sheet [Tables.xlsx](results/Tables.xlsx) stored in the folder [results](results). The table lists the coefficients of the fixed effects for each model, jointly with the p-values of explanatory variables obtained from the t-test/Wald test and partial Rsquared values. Furthermore, the marginal and conditional Rsquared are reported in the table for each model.
+<br />
 Additionally, we performed chisquare-tests to explore how parasitism of the aphids affected the likelihood of survival vs. extinction of the aphid colony. These tests can be reproduced running the script [parasitism.R](scripts/parasitism.R). We run three tests asking the questions (1) were aphid colonies with signs of parasitism more prone to extinction than unparasitized, healthy aphid colonies?; were parasitized aphid colonies from low-medium urbanized study sites (<20% of sealed surfaces in a 500m buffer) more prone to extinction than parasitized aphid colonies from medium-high urbanized study sites (>30% of sealed surfaces in a 500m buffer)?; did aphid colonies which displayed >=10% of parasitized aphids all went extinct?
 The script prepares the data in three data vectors (X1, X2 and X3) that contain the information for performing the chisquare-tests, one for each data vector. Outcomes from the chisquare-tests can be reproduced running the command `chisq.test(X)` with X being the data vector.
 > Note that we excluded ant-aphid-host plant systems that were studied on the last visit of the study site from this analysis due to missing information about their survival/extinction.
 
-**Plotting the data**<br />
+**IV-Plotting the data**<br />
 <br />
 The script [figures_main.R](scripts/figures_main.R) produces the figures which are reported in the manuscript (main text and supplementary material). We used plotting function from the package *ggplot2* and color palettes from the package *viridis*. The script formats the data for plotting, produces the figures and stores these figures as pdf files in the folder [figures](figures):
 - [ant_aphid_nb.pdf](figures/ant_aphid_nb.pdf): visualizes the positive correlation between aphid density and ant number across 3 periods of the field survey (start: 1.-11.08.2018; mid: 12.-21.08.2018; end: 22.08-1.09.2018). Aphids were counted within an area of the host plant (focal zone) to derive aphid densities (number of individuals/vertical length of the focal zone). Ant numbers are the average number of ants in the focal zone (in decimals, based on 5 counts within 1 min each where ant movement in and out of the zone was monitored). Shown in the plot are the real data and three linear regressions that illustrate the positive interaction between date and numbers of ants and aphids.
