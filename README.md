@@ -55,7 +55,7 @@ The script [master.R](scripts/master.R) includes the entire code to reproduce th
 
 **III-Analysing the data**<br />
 <br />
-The script [models_main.R] includes the code that was run to obtain the statistics reported in this study. The analysis of each response variable was performed in the same manner:
+The script [models_main.R](scripts/models_main.R) includes the code that was run to obtain the statistics reported in this study. The analysis of each response variable was performed in the same manner:
 1. Check for normal distribution of the response (only necessary for continuous response variables) by plotting the response in form of a histogram - `hist(ResponseVariable)`. If necessary, transform the response to achieve normal distribution (we square root-transformed aphid density and log-transformed the ant number and the ant-per-aphid ratio).
 2. Fit the model.<br />
 To model **aphid density** we fit a LMM from the package *lmer* considering date ("date_s"), ant number ("meanAnt.mean_s"), sealing ("Seal_500_s") and all two-way interactions as fixed effects, and used host plant ("1|plantPop") as random effect:<br />
