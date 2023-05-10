@@ -34,9 +34,8 @@ The raw data of this study is stored in form of *.csv*-files  that are located i
 - [geodata](data/geodata): this folder contains shapefile data of Berlin used to create a map of the study sites.
 
 ## How to run the code
-The R code used to analyse the data of this study and to produce the figures is located in the folder [scripts](scripts).
-> In the following sections we refer to specific columns of data frames using '$*columnname*'.
-> The script [master.R](scripts/master.R) includes the entire code to reproduce the statistics and figures of the manuscript: **(1)** loads the required packages; **(2)** imports the raw data; **(3)** formats the raw data and derives the response and explanatory variables; **(4)** analyses the relationships between response variables and explanatory variables using linear mixed effect models (LMMs) and generalised linear mixed effect models (GLMMs), and performs diagnostical and statistical tests; **(5)** produces the figures of the manuscript.
+The R code used to analyse the data of this study and to produce the figures is located in the folder [scripts](scripts). <br />
+The script [master.R](scripts/master.R) includes the entire code to reproduce the statistics and figures of the manuscript: **(1)** loads the required packages; **(2)** imports the raw data; **(3)** formats the raw data and derives the response and explanatory variables; **(4)** analyses the relationships between response variables and explanatory variables using linear mixed effect models (LMMs) and generalised linear mixed effect models (GLMMs), and performs diagnostical and statistical tests; **(5)** produces the figures of the manuscript.
 > IMPORTANT: to run this code, first install the required packages using the command `install.packages("packagename")` and change the working directory `working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis-AphidAntMutualism-Berlin"` to the one where you stored the scripts and data folders.
 
 **Running the code step by step**
@@ -46,6 +45,7 @@ The R code used to analyse the data of this study and to produce the figures is 
 - run [import_data.R](scripts/import_data.R) to upload the *.csv*-files of the raw data in form of data frames into your R environment.
 
 **II-Format the data** 
+> In the following sections we refer to specific columns of data frames using '$*columnname*'.
 - run [transform_General_plot.R](scripts/transform_General_plot.R) to get a summary table of the field survey including the ID of the study site ($plot.simple), the geographic location of the study sites ($Long, $Lat), the number of visits per study site ($N_visits), the number of sampling sessions per study site ($N_sampled) and the number of studied ant-aphid-host plant systems per study site ($N_plant). This summary table of the field survey can be alternatively found in the folder [results](results) in the file [field_summary.csv](results/field_summary.csv).
 - run [transform_Met_plot_date.R](transform_Met_plot_date.R) to obtain the average temperature per sampling session ($mean.temp), calculated based on three temperature measurements per sampling session.
 - run [transform_Met_plant.R](scripts/transform_Met_plant.R) to obtain the proportion of parasitized aphids (relative to the total number of counted aphids) per sampling session ($Prop_paras).
@@ -61,43 +61,35 @@ The script [models_main.R](scripts/models_main.R) includes the code that was run
 1. Check for normal distribution of the response (only necessary for continuous response variables) by plotting the response in form of a histogram - `hist(ResponseVariable)`. If necessary, transform the response to achieve normal distribution (we square root-transformed aphid density and log-transformed the ant number and the ant-per-aphid ratio).
 2. Fit the model.<br />
 To model **aphid density** we fit a LMM from the package *lmer* considering date (date_s), ant number (meanAnt.mean_s), sealing (Seal_500_s) and all two-way interactions as fixed effects, and used host plant (1|plantPop) as random effect:<br />
-`Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
-            date_s:meanAnt.mean_s +
-            date_s:Seal_500_s +
-            meanAnt.mean_s:Seal_500_s + 
-            (1|plantPop),
-          data=Aphid_density)`<br />
+`Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +`<br />
+            `date_s:meanAnt.mean_s + date_s:Seal_500_s +`<br />
+            `meanAnt.mean_s:Seal_500_s + (1|plantPop),`<br />
+          `data=Aphid_density)`<br />
           <br />
 To model **ant number** we fit a LMM from the package *lmer* considering date (date_s), aphid number (N_aphid_s), sealing (Seal_500_s) and all two-way interactions as fixed effects, and used host plant (1|plantPop) as random effect:<br />
-`Ant.nb<-lmer(log(meanAnt.mean)~date_s + N_aphid_s + Seal_500_s +  
-               date_s:N_aphid_s + date_s:Seal_500_s +
-               N_aphid_s:Seal_500_s +
-               (1|plantPop), data=Ant_attendance)`<br />
+`Ant.nb<-lmer(log(meanAnt.mean)~date_s + N_aphid_s + Seal_500_s + `<br />
+               `date_s:N_aphid_s + date_s:Seal_500_s +`<br />
+               `N_aphid_s:Seal_500_s + (1|plantPop),` <br />
+               `data=Ant_attendance)`<br />
                <br />
 To model **ant-per-aphid ratio** we fit a LMM from the package *lmer* considering date (date_s), aphid number (N_aphid_s), sealing (Seal_500_s) and all two-way interactions as fixed effects, and used host plant (1|plantPop) as random effect:<br />
-`AntAtt<-lmer(log(AntperAphid.mean) ~ date_s + N_aphid_s + Seal_500_s +  
-               date_s:N_aphid_s + date_s:Seal_500_s +
-               N_aphid_s:Seal_500_s +
-               (1|plantPop),
-             data=Ant_attendance)`<br />
+`AntAtt<-lmer(log(AntperAphid.mean) ~ date_s + N_aphid_s + Seal_500_s +`<br /> 
+              `date_s:N_aphid_s + date_s:Seal_500_s +`<br />
+               `N_aphid_s:Seal_500_s + (1|plantPop),`<br />
+             `data=Ant_attendance)`<br />
              <br />
 To model **tending time** we fit a beta regression model from the package *glmmTMB* considering date (date_s), aphid number (N_aphid_s), sealing (Seal_500_s) and all two-way interactions as fixed effects, and used host plant (1|plantPop) as random effect:  
-`Tend.betareg <- glmmTMB(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
-                          date_s:N_aphid_s + date_s:Seal_500_s +
-                          N_aphid_s:Seal_500_s +
-                          (1|plantPop),
-                        data= tmp,
-                        family=beta_family)`<br />
+`Tend.betareg <- glmmTMB(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + `<br />
+                          `date_s:N_aphid_s + date_s:Seal_500_s +`<br />
+                          `N_aphid_s:Seal_500_s + (1|plantPop),`<br />
+                       `data= tmp, family=beta_family)`<br />
                         <br />
 To model **ant aggressivity** as a binary response (aggressive ant reaction vs. avoidance) we fit a binomial GLMM from the package *lmer* considering date (date_s), aphid number (N_aphid_s), sealing (Seal_500_s), the context of disturbance (context: tending aphids vs. other behaviour) and selected two-way interactions as fixed effects, and included date nested into host plant (1|plantPop/date) as random effect:  
-`reaction.binom<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
-                        context:date_s + context:N_aphid_s + context:Seal_500_s +
-                        date_s:N_aphid_s + date_s:Seal_500_s +
-                        N_aphid_s:Seal_500_s + 
-                        (1|plantPop/date),
-                      family = binomial,
-                      data=Ant_aggressivity,
-                      glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))`
+`reaction.binom<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + context:date_s +`<br />
+                       `context:N_aphid_s + context:Seal_500_s + date_s:N_aphid_s + date_s:Seal_500_s +`<br />
+                        `N_aphid_s:Seal_500_s + (1|plantPop/date),`<br />
+                     ` family = binomial, data=Ant_aggressivity,`<br />
+                     ` glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))`<br />
                       <br />
 3. Apply a diagnostical test to check model residuals. We therefore applied the simulation-based diagnostic approach using functions of the package *DHARMa*:<br />
  `hist(residuals(model))` <br />
