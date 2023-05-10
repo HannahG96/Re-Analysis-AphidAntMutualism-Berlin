@@ -35,10 +35,10 @@ colnames(data[[i]])[1]<-"plot.simple"
 assign(data_names[i], data[[i]])}
 
 ###Load the data about the plots given by CityScapeLabs:
-GivenMeta_plots <-fread(file="data/GivenMeta_plots.csv", na.strings = "kA", dec = ",", data.table = FALSE)
+GivenMeta_plots <-fread(file="data/GivenMeta_plots.csv", na.strings = "kA", dec = ",", data.table = FALSE,header=TRUE)
 ###Extract relevant variables from the data
 MyGivenMeta_plots <- GivenMeta_plots[c(9,10,11,21,23,40,48,50,51),
-                                     c("ID_plot","Long","Lat","Age","Seal_500","Pop_500")]
+                                     c("ID_plot","Long","Lat","Seal_500","Pop_500")]
 ###Format Seal_500 data for merging with my data files:
 colnames(MyGivenMeta_plots)[1] <- "plot.simple" #column name
 MyGivenMeta_plots$plot.simple <- sub("_","-",MyGivenMeta_plots$plot.simple ) # change "_"in "-"

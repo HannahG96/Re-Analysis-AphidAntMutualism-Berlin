@@ -17,7 +17,7 @@ if (!exists('field.summary')) {
 GivenMeta_plots<-fread(file="data/GivenMeta_plots.csv",
                        na.strings = "kA",
                        dec = ",", 
-                       data.table = FALSE)
+                       data.table = FALSE,header=TRUE)
 MAP<-GivenMeta_plots[c(23,40,11,21,51,10,9,50,48,53,13,
                        34,39,35,37,17,18,25,
                        26,41,42,52,54,56),]
