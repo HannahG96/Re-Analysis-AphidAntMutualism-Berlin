@@ -1,41 +1,31 @@
-#MASTER SCRIPT
-######################################################
+# MASTER SCRIPT
 
-# If you are not using an Rproject :
-working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis-AphidAntMutualism-Berlin"
-setwd(working_dir)
+# LOAD PACKAGES ####
+library(data.table)   # import data as data frame
+library(doBy)         # calculate summary tables
+library(dplyr)        # data transformation
+library(ggplot2)      # produce nice figures
+library(GGally)       # correlation of expl. variables (ggpair-plot)
 
+library(lme4)       # mixed effect models
+library(lmerTest)     # Satterthwaite's significance test for LMER models
+library(MuMIn)      # calculate marginal and conditional Rsquared
+library(r2glmm)     # partial Rsquared for fixed effects
+library(glmmTMB)      # fit Beta regression GLMMs
+library(DHARMa)       # package for testing residuals of model
+library(broom.mixed)  # format the table of model coefficients and get CI
+library(dotwhisker)   # represent the model coefficients with CI
 
-#LOAD PACKAGES
-library("data.table")#import data as data frame
-library("doBy")#calculate summary tables
-library("ggplot2")#produce nice figures
-library("varhandle")#remove all objects except...
-library("lme4")#mixed effect models
-library("GGally")#correlation of expl. variables (ggpair-plot)
-library("dplyr")#standardize explanatory variables
-library("arm")#nice visualization of model summary
-library("MuMIn")#calculate marginal and conditional Rsquared
-library("r2glmm")#partial Rsquared for fixed effects
-library("xlsx")#export R-tables to excel
-library("ggnewscale")#extended color scales in ggplot
-library("sjPlot")#visualize model results
-# added by maud:
-library(stringr) # for all types of handy string modifications
-library(lmerTest) #gives you p-values for LMER models via Satterthwaite's method
-library(glmmTMB) # best package to fit the GLMMs
-library(DHARMa)  # cool package for testing residuals of model
-library(broom.mixed) # format the table of model coefficients and get CI
-library(dotwhisker) # represent the model coefficients with CI
-#library(bestNormalize) # find the best transformation for normalizing response variable
-library("viridis")#color palette for figures
-library("scales")#obtain color palette that is consistent with other plots
-library("writexl")#export data frame to excel
+library(viridis)      # color palette for figures
+library(scales)       # obtain color palette that is consistent with other plots
 
-#IMPORT DATA
+library(rgdal)        # GIS mapping
+library(sf)           # spatial objects
+
+# IMPORT DATA ####
 source("scripts/import_data.R")
 
-#FORMAT DATA
+# FORMAT DATA ####
 source("scripts/transform_General_plot.R")
 source("scripts/transform_Met_plot_date.R")
 source("scripts/transform_Met_plant.R")
@@ -45,10 +35,11 @@ source("scripts/transform_Exp3a.R")
 source("scripts/transform_Exp3b.R")
 source("scripts/myResponseVariables.R")
 
-#ANALYSE DATA
+# ANALYSE DATA ####
 source("scripts/models_main.R")
 source("scripts/parasitism.R")
 
-#PRODUCE FIGURES
+# PRODUCE FIGURES ####
 source("scripts/figures_main.R")
 source("scripts/create_map.R")
+
