@@ -1,4 +1,4 @@
-#EXPLORE PARASITISM DATA FOR FLO
+#EXPLORE PARASITISM DATA
 
 #1.ARE PARASITIZED APHID COLONIES MORE PRONE TO EXTINCTIONS?
 #2.DOES THE LIKELIHOOD OF SURVIVAL OF PARASITIZED APHID COLONIES CHANGE ALONG THE URBAN GRADIENT?
@@ -18,8 +18,6 @@
 P1<-fread(file = "data/aphid_extinctions.csv", na.strings = "kA", dec = "," , data.table = FALSE)
 
 #Max proportion of parasitism of each colony
-source("scripts/import_data.R")
-source("scripts/transform_Met_plant.R")
 P2<-as.data.frame(matrix(NA,nrow=0,ncol=3,dimnames=list(NULL,c("prop_paras","plot.simple","plant"))))
 Met_plant$ID<-paste(Met_plant$plot.simple, Met_plant$plant)
 x<-unique(Met_plant$ID)
@@ -51,7 +49,6 @@ for(i in 1:length(p3)){
   if(length(which(Met_plant[,"ID"]==myplant))==1)unknowns<-c(unknowns,myplant)}
 
 #Merge all information:
-source("scripts/transform_General_plot.R")
 P4<-merge(P1,P2,by=c("plot.simple","plant"),all=T)
 P4$ID<-paste(P4$plot.simple,P4$plant)
 P4[which(is.na(P4[,"N_aphid"])==T),"N_aphid"]<-1
@@ -188,4 +185,4 @@ colnames(parasitism.data)<-c("plot.simple","plant","date","%parasitism")
 parasitism.data<-merge(parasitism.data, P4[,c("plot.simple","plant",
                                               "survival","prop_paras","Seal_500")], by=c("plot.simple","plant"))
 colnames(parasitism.data)[6]<-"Maximum.%parasitism.per.plant"
-write_xlsx(parasitism.data,"C:\\Hannah\\Bachelorarbeit\\BA Publication\\Text\\parasitism_data.xlsx")
+write.csv(parasitism.data,"data/parasitism_data.csv")

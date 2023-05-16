@@ -4,9 +4,9 @@ library(rgdal)
 library(stringr)
 library(ggplot2)
 library(ggspatial)
-library(sf)
+require(sf)
 library(tmap)
-library("data.table")
+require(data.table)
 
 # If needed, import the "field_summary" plot data, created from output of Master script
 if (!exists('field.summary')) {
@@ -14,10 +14,10 @@ if (!exists('field.summary')) {
 }
 
 ##IMPORT SITES DATA:
-GivenMeta_plots<-fread(file="data/GivenMeta_plots.csv",
-                       na.strings = "kA",
-                       dec = ",", 
-                       data.table = FALSE,header=TRUE)
+# GivenMeta_plots<-data.table::fread(file="data/GivenMeta_plots.csv",
+#                        na.strings = "kA",
+#                        dec = ",", 
+#                        data.table = FALSE,header=TRUE)
 MAP<-GivenMeta_plots[c(23,40,11,21,51,10,9,50,48,53,13,
                        34,39,35,37,17,18,25,
                        26,41,42,52,54,56),]
@@ -28,8 +28,8 @@ MAP$Lat<-as.numeric(MAP$Lat)
 MAP$Seal_500<-as.numeric(MAP$Seal_500)
 
 #Produce sf object:
-Sites.selected<-st_as_sf(MAP, coords=c("Long","Lat"))[c(1:9),]
-Sites.out<-st_as_sf(MAP, coords=c("Long","Lat"))[c(10:24),]
+Sites.selected<-sf::st_as_sf(MAP, coords=c("Long","Lat"))[c(1:9),]
+Sites.out<-sf::st_as_sf(MAP, coords=c("Long","Lat"))[c(10:24),]
 
 
 # import geodata:
@@ -55,7 +55,7 @@ CRS.new <- proj4string(ant_plots)
 proj4string(berlin_districts)
 
 # Create map for article:
-(map_ants <-  tm_shape(berlin_districts) +
+map_ants <-  tm_shape(berlin_districts) +
   tm_fill(col = "grey90") +
   tm_borders(col = "white")  +
   tm_shape(explored_plots) + tm_dots(size = 0.3,
@@ -82,9 +82,9 @@ proj4string(berlin_districts)
             legend.text.color = "grey20",
             legend.position = c(0.9, 0.45),
             frame = FALSE)
-)
+
 # export as pdf
 pdf("figures/StudySites.pdf", height = 4, width =5)
-map_ants
+  map_ants
 dev.off()
 

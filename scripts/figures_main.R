@@ -384,3 +384,4 @@ a<-Ant_aggressivity[which(Ant_aggressivity[,"context"]=="tending aphids"),]
 length(which(a[,"reaction"]==1))/164#0.8963415
 b<-Ant_aggressivity[which(Ant_aggressivity[,"context"]=="other behaviour"),]
 length(which(b[,"reaction"]==1))/168#0.7619048
+
