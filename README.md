@@ -36,7 +36,7 @@ The raw data of this study is stored in form of *.csv*-files  that are located i
 ## How to run the code
 The R code used to analyse the data of this study and to produce the figures is located in the folder [scripts](scripts). <br />
 The script [master.R](scripts/master.R) includes the entire code to reproduce the statistics and figures of the manuscript: **(1)** loads the required packages; **(2)** imports the raw data; **(3)** formats the raw data and derives the response and explanatory variables; **(4)** analyses the relationships between response variables and explanatory variables using linear mixed effect models (LMMs) and generalised linear mixed effect models (GLMMs), and performs diagnostical and statistical tests; **(5)** produces the figures of the manuscript.
-> IMPORTANT: to run this code, first install the required packages using the command `install.packages("packagename")` and change the working directory `working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis-AphidAntMutualism-Berlin"` to the one where you stored the scripts and data folders.
+> IMPORTANT: To run this code, first download the repository and store it in some directory of your choice. Then, install the required packages using the command `install.packages("packagename")` and specify the working directory where you saved the repository in [master.R](scripts/master.R)  using the command `setwd("your working directory")`.
 
 **Running the code step by step**
 > To avoid error messages, first load the packages mentioned in [master.R](scripts/master.R) and run the scripts in the below mentioned order. 
