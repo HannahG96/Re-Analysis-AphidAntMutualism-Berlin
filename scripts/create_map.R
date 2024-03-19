@@ -50,8 +50,12 @@ explored_plots <- total_plots[
 ## Geodata info about Berlin
 berlin_districts <- readOGR(dsn = "data/geodata", layer ="Districts", stringsAsFactors = F )
 
+
+plot(berlin_districts)
+
 # correct projections
 CRS.new <- proj4string(ant_plots)
+
 proj4string(berlin_districts)
 
 # Create map for article:
