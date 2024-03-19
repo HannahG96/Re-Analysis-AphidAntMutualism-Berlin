@@ -60,6 +60,7 @@ tmp = filter(Ant_attendance, prop_paras != 0)
 prop_paras <- glmmTMB(prop_paras ~ date_s + Seal_500_s
                       + date_s:Seal_500_s +  N_aphid_s +
                         (1|plantPop + plot.simple),
+
                       data= tmp,
                       family= gaussian())
 
@@ -76,7 +77,7 @@ summary(prop_paras)
 plot(prop_paras ~ Seal_500, tmp, col = date)
 #=> Sealing has positive effect, but mostly due to high values in the highly urban colony (only one).
 
-# # Hurdle model part 2 - MAximum parasitism - no dates => NS
+## Hurdle model part 2 - Maximum parasitism - no dates => NS
 tmp = filter(Ant_attendance, prop_paras != 0) %>%
   group_by(plantPop) %>%
   reframe(max_para = max(prop_paras, na.rm = TRUE),
@@ -98,8 +99,6 @@ summary(max_para)
 
 plot(max_para ~ jitter(Seal_500), tmp)
 #=> Sealing has no visible effect
-
-
 
 #Extinctions of aphid colonies #####
 P1<-fread(file = "data/aphid_extinctions.csv", na.strings = "kA", dec = "," , data.table = FALSE)
