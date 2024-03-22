@@ -359,8 +359,34 @@ dev.off()
 #Temperature
 mean(Ant_aggressivity$mean.temp)#22.66531
 range(Ant_aggressivity$mean.temp)#15.36667 36.36667
-ggplot(Ant_aggressivity, aes(x=plot.simple, y=mean.temp))+
+ggplot(Ant_aggressivity, aes(x=as.factor(Seal_500), y=mean.temp))+
   geom_boxplot()
+#Plot temperature along the urbanisation gradient:
+#open graphical device:
+#-->1.5 column width
+pdf(file="figures/temperature.pdf",         # File name
+    width = 5, height = 4, # Width and height in inches
+    bg = "white",          # Background color
+    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
+
+#Produce plot based on predicted data:
+
+ggplot(data = Ant_aggressivity, mapping = aes(Seal_500, mean.temp)) +
+  geom_point(size=1.75, color="black") +
+  theme_minimal()+
+  #geom_smooth(method = "lm", se = FALSE, color="black") +
+  theme(legend.title=element_text(size=10, face="bold", color="gray21"),
+        axis.title.y=element_text(size=10, face="bold", color="gray21"),
+        axis.title.x=element_text(size=10, face="bold", color="gray21"),
+        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
+        panel.grid.minor = element_blank(),
+        legend.position=c(0.85,0.2)) +
+  xlab("% Sealing") +
+  ylab("Temperature (°C)")
+
+# close the graphical device:
+dev.off() 
+
 #Aphid counts
 sum(Aphid_density$N_aphid)#4001
 

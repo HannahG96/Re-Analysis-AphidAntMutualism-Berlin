@@ -1,5 +1,9 @@
 # MASTER SCRIPT
 
+# SET WORKING DIRECTORY ####
+working_dir <- "C:/Hannah/Bachelorarbeit/BA Publication/Re-analysis-AphidAntMutualism-Berlin"
+setwd(working_dir)
+
 # LOAD PACKAGES ####
 library(data.table)   # import data as data frame
 library(doBy)         # calculate summary tables
