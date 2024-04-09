@@ -382,7 +382,7 @@ ggplot(data = Ant_aggressivity, mapping = aes(Seal_500, mean.temp)) +
         panel.grid.minor = element_blank(),
         legend.position=c(0.85,0.2)) +
   xlab("% Sealing") +
-  ylab("Temperature (°C)")
+  ylab("Temperature (?C)")
 
 # close the graphical device:
 dev.off() 
@@ -411,3 +411,41 @@ length(which(a[,"reaction"]==1))/164#0.8963415
 b<-Ant_aggressivity[which(Ant_aggressivity[,"context"]=="other behaviour"),]
 length(which(b[,"reaction"]==1))/168#0.7619048
 
+##############################################################################
+#Manuscript Revisions: additional figures for supplementary material
+
+##1##
+#Visualize correlation of predictors: "plantStade", "mean.temp" and "date":
+#prepare data for plotting:
+cor.predictors<-merge(Met_plant[,c("plot.simple","plant","date","plantStade")],
+                      expVar[,c("plot.simple","plant","date","mean.temp","N_aphid")],
+                      by=c("plot.simple","plant","date"))
+cor.predictors$plantStade<-factor(cor.predictors$plantStade, levels=c(1,2,3,4))
+cor.predictors$date<-as.Date(cor.predictors$date,format="%Y-%m-%d")
+#Produce plot:
+#open graphical device:
+pdf(file="figures/correlated_predictors.pdf",         # File name
+    width = 7, height = 4, # Width and height in inches
+    bg = "white",          # Background color
+    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
+ggplot(cor.predictors, aes(x=date,y=mean.temp,color=plantStade,shape=plantStade))+
+  theme_minimal()+
+  geom_point(size=2.5)+
+  scale_shape_manual("Plant phenology",values=c(15,16,17,23),
+                     breaks=c(1,2,3,4),
+                     labels=c("budding","full flowering","withering flowers","desiccated plant"))+
+  scale_color_manual("Plant phenology",values=c("#37659EFF","lightsteelblue3",
+                                                "#40B7ADFF",
+                                                "#3E3367FF"),
+                     breaks=c(1,2,3,4),
+                     labels=c("budding","full flowering","withering flowers","desiccated plant"))+
+  theme(legend.title=element_text(size=10, face="bold", color="gray21"),
+        axis.title.y=element_text(size=10, face="bold", color="gray21"),
+        axis.title.x=element_text(size=10, face="bold", color="gray21"),
+        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
+        panel.grid.minor = element_blank())+
+  #legend.position=c(0.88,0.95))+
+  xlab("Date")+
+  ylab("Mean Temperature")
+# close the graphical device:
+dev.off() 

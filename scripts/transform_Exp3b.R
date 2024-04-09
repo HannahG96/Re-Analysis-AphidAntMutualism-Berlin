@@ -30,6 +30,12 @@ Exp3b[which(Exp3b[,"aggr"]>=5),"aggr_score"]<-1 #attack by bite
 Exp3b[which(Exp3b[,"JUMP"]==1),"aggr_score"]<-2 #attack by jump
 
 ###Exclude all ants showing explorative(=3)/tolerant(=2) behaviours=artificial stimuli was not successful
-OUTs<-Exp3b[which(is.na(Exp3b[,"aggr_score"])==T),]
+###BUT Create separate data frame with these ants that did "not react" to the artificial stimuli
+Exp3b_noReact<-Exp3b
+Exp3b_noReact[which(is.na(Exp3b_noReact[,"aggr_score"])==T),"noReact"]<-1
+Exp3b_noReact[which(is.na(Exp3b_noReact[,"aggr_score"])==F),"noReact"]<-0
+
 Exp3b<-Exp3b[which(is.na(Exp3b[,"aggr_score"])==F),] #47 ants excluded
+
+
 

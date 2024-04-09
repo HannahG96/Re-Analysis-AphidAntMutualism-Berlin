@@ -1,20 +1,100 @@
 #EXPLORE PARASITISM DATA
 
-#1.ARE PARASITIZED APHID COLONIES MORE PRONE TO EXTINCTIONS?
-#2.DOES THE LIKELIHOOD OF SURVIVAL OF PARASITIZED APHID COLONIES CHANGE ALONG THE URBAN GRADIENT?
-#3.ARE APHID COLONIES WITH MORE THEN 10% OF MUMMIES EXPOSED TO EXTINCTION?
+# Test whether there are trends in the proportion of parasitized aphids along the urbanisation gradient
 
-#Note:
-#-->7 obs excluded due to lack of info about survival/extinction (these systems were sampled for the 1st time on the last visit of the plot)
-#-->1 obs excluded due to lack of proportion of parasitism data (Nh_04 Alpha-->first system studied)
-#=Total of only 21 obs
+plot(prop_paras ~ Seal_500, Ant_attendance, col = date) #=> a simple corr suggests a slight positive association
+cor.test( ~ prop_paras + Seal_500_s, Ant_attendance, method = "pearson") 
 
-##################################
-#IMPORT AND PREPARE DATA
-#-->Df indicating for each aphid colony: (i)maximal proportion of mummies, 
-#                                        (ii)colony dynamics (extinction/persistence/unknown outcome) 
+## try to fit a model: percentages with lots of zeros...
 
-#Extinctions of aphid colonies
+prop_paras <- glmmTMB(prop_paras ~ date_s + Seal_500_s
+                           + date_s:Seal_500_s + N_aphid_s +
+                             (1|plantPop+plot.simple),
+                           weights = N_aphid,
+                        data= Ant_attendance,
+                        family= gaussian)
+
+# Test residuals:
+hist(residuals(prop_paras))
+res <- DHARMa::simulateResiduals(prop_paras)
+plot(res) # VERY BAD => Need other model
+
+#########PROBABILITY OF PARASITISM PRESENT (1/0) IN APHID COLONY~SEALING
+# Hurdle model part 1 - Probability of presence of parasitism
+tmp = mutate(Ant_attendance, pres_paras= as.numeric(prop_paras>0))
+pres_paras <- glmmTMB(pres_paras ~ date_s + Seal_500_s
+                      + date_s:Seal_500_s +  N_aphid_s 
+                      + date_s:N_aphid_s + date_s:Seal_500_s + N_aphid_s:Seal_500_s
+                        +(1|plantPop),# + plot.simple),
+                      data= tmp,
+                      family= binomial())
+plot(pres_paras ~ Seal_500, tmp, col = date)
+
+##Test residuals:
+hist(residuals(pres_paras)) # bof
+res <- DHARMa::simulateResiduals(pres_paras)
+plot(res) # some trend but not significant
+
+## Test fixed effects:
+car::Anova(pres_paras, type="III") # one way to test for significance (probably the best)
+##-->Wald test (z-test)
+summary(pres_paras)
+#=> no effect on presence of parasitism
+
+# r2 values:
+r.squaredGLMM(pres_paras)
+#########marginal:
+#########conditional:
+
+##################TRENDS IN PROPORTION OF PARASITISM WITHIN PARASITIZED COLONIES~SEALING
+# Hurdle model part 2 - proportion of parasitism (only paras. host plants)
+#-->PROBLEMS WITH THIS MODEL
+tmp = filter(Ant_attendance, prop_paras != 0)
+#tmp<-tmp[-which(tmp$plot.simple=="Nl-200"),]-->removing the most urban plot: Sealing becomes insignificant
+prop_paras <- glmmTMB(prop_paras ~ date_s + Seal_500_s
+                      + date_s:Seal_500_s +  N_aphid_s 
+                      + date_s:N_aphid_s + date_s:Seal_500_s + N_aphid_s:Seal_500_s
+                        +(1|plantPop), #+ plot.simple),
+                      data= tmp,
+                      family= gaussian)
+
+# Test residuals:
+hist(residuals(prop_paras)) # bof
+res <- DHARMa::simulateResiduals(prop_paras)
+plot(res) # -->PROBLEM WITH THIS MODEL
+
+
+#################TRENDS IN THE NUMBER OF MUMMIES WITHIN PARASITIZED COLONIES~SEALING
+## ALTERNATIVE for model 2: model parasitized aphids counts using a poisson distribution
+#Transform proportion of parasitism into aphid mummy counts:
+tmp$N_paras = ceiling( tmp$N_aphid * (tmp$prop_paras/100))
+
+counts_paras <- glmmTMB(N_paras ~ date_s + Seal_500_s
+                        + date_s:Seal_500_s +  N_aphid_s 
+                        + date_s:N_aphid_s + date_s:Seal_500_s + N_aphid_s:Seal_500_s
+                        +(1|plantPop), #+ plot.simple),
+                        data= tmp,
+                        family= poisson)
+
+# Test residuals:
+hist(residuals(counts_paras)) # OK
+res <- DHARMa::simulateResiduals(counts_paras)
+plot(res) # -->OK
+
+# Test fixed effects:
+car::Anova(counts_paras, type="III") # one way to test for significance (probably the best)
+#-->Wald test (z-test)
+summary(counts_paras) 
+
+# r2 values:
+r.squaredGLMM(counts_paras)
+#########marginal:0.4070
+#########conditional:0.9598---->THIS IS VERY HIGH....
+
+###########################################################################################################
+##############################EXCLUDED FROM ANALYSIS###############################################
+
+#Extinctions of aphid colonies #####
 P1<-fread(file = "data/aphid_extinctions.csv", na.strings = "kA", dec = "," , data.table = FALSE)
 
 #Max proportion of parasitism of each colony

@@ -14,7 +14,8 @@ library(GGally)       # correlation of expl. variables (ggpair-plot)
 library(lme4)       # mixed effect models
 library(lmerTest)     # Satterthwaite's significance test for LMER models
 library(MuMIn)      # calculate marginal and conditional Rsquared
-library(r2glmm)     # partial Rsquared for fixed effects
+library(r2glmm)     # partial Rsquared for fixed effects (LMMs)
+#library(partR2)     # partial Rsquared for fixed effects (GLMMs)????????????
 library(glmmTMB)      # fit Beta regression GLMMs
 library(DHARMa)       # package for testing residuals of model
 library(broom.mixed)  # format the table of model coefficients and get CI
@@ -23,7 +24,7 @@ library(dotwhisker)   # represent the model coefficients with CI
 library(viridis)      # color palette for figures
 library(scales)       # obtain color palette that is consistent with other plots
 
-library(rgdal)        # GIS mapping
+#library(rgdal)        # GIS mapping
 library(sf)           # spatial objects
 
 # IMPORT DATA ####

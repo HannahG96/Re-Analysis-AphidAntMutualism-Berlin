@@ -1,4 +1,7 @@
 ### MODELS ###
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#-->CHANGE COEFFS AND STATS IN TABLES!!!!!!!!!!!!!!!!!!!
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ### 1-A. APHID DENSITY ####
 #=nb of aphids/length of focal zone (mm)
@@ -11,7 +14,7 @@ Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
             date_s:meanAnt.mean_s +
             date_s:Seal_500_s +
             meanAnt.mean_s:Seal_500_s + 
-            (1|plantPop),
+            (1|plantPop), #+(1|plot.simple)
           data=Aphid_density)#N=53
 
 #Look at diagnostics:
@@ -39,7 +42,7 @@ sub_Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
                 date_s:meanAnt.mean_s +
                 date_s:Seal_500_s +
                 meanAnt.mean_s:Seal_500_s + 
-                (1|plantPop),
+                (1|plantPop), #+(1|plot.simple),
               data=sub_df)
 summary(sub_Aph)  # No more interaction effect
 #Look at diagnostics:
@@ -51,7 +54,6 @@ r.squaredGLMM(sub_Aph)
 r2beta(sub_Aph, method="nsj")
 
 ###2. Ant NUMBER: RESPONSE AS DECIMAL VARIABLE #####
-
 hist(Ant_attendance$meanAnt.mean)
 
 #Fit LMER with Gaussian distribution:
@@ -61,7 +63,8 @@ hist(log(Ant_attendance$meanAnt.mean))
 Ant.nb<-lmer(log(meanAnt.mean)~date_s + N_aphid_s + Seal_500_s +  
                date_s:N_aphid_s + date_s:Seal_500_s +
                N_aphid_s:Seal_500_s +
-               (1|plantPop), data=Ant_attendance)#N=53
+               (1|plantPop), #+(1|plot.simple), 
+               data=Ant_attendance)#N=53
 #Look at diagnostics:
 plot(Ant.nb)
 qqnorm(resid(Ant.nb))
@@ -91,8 +94,10 @@ hist(Ant_attendance$AntperAphid.mean) # Not looking normal
 AntAtt<-lmer(log(AntperAphid.mean) ~ date_s + N_aphid_s + Seal_500_s +  
                date_s:N_aphid_s + date_s:Seal_500_s +
                N_aphid_s:Seal_500_s +
-               (1|plantPop),
-             data=Ant_attendance)
+               (1|plantPop), #+(1|plot.simple),
+             data=Ant_attendance,
+             control=lmerControl(optimizer="bobyqa",
+                                 optCtrl=list(maxfun=2e5)))
 
 #Look at diagnostics:
 plot(AntAtt)
@@ -153,14 +158,26 @@ Ant_aggressivity$reaction<-as.factor(Ant_aggressivity$reaction)
 
 # Fit GLMER:
 #Model1: aggressive (1) vs. avoidance (0)
+Ant_aggressivity$plot.simple<-as.factor(Ant_aggressivity$plot.simple)
+#-->GLMER model is a singular fit with new RANEF structure:
 reaction.binom<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
                         context:date_s + context:N_aphid_s + context:Seal_500_s +
                         date_s:N_aphid_s + date_s:Seal_500_s +
                         N_aphid_s:Seal_500_s + 
-                        (1|plantPop/date),
+                        (1|plantPop/date), #+(1|plot.simple),
                       family = binomial,
                       data=Ant_aggressivity,
                       glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+#with 'plot.simple' as RANEF->%SEALING BECOMES UNSIGNIFICANT!!!!!!!!!!
+#reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
+               #             context:date_s + context:N_aphid_s + context:Seal_500_s +
+               #             date_s:N_aphid_s + date_s:Seal_500_s +
+               #             N_aphid_s:Seal_500_s + 
+               #             (1|plantPop/date)+(1|plot.simple),
+               #           control=glmmTMBControl(optimizer=optim,
+               #                                  optArgs=list(method="BFGS")),
+               #           family = binomial(),
+               #           data= Ant_aggressivity)
 # Test residuals:
 plot(res <- simulateResiduals(reaction.binom)) # Some trend but not signif
 

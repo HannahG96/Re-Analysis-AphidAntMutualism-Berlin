@@ -35,7 +35,8 @@ colnames(data[[i]])[1]<-"plot.simple"
 assign(data_names[i], data[[i]])}
 
 ###Load the data about the plots given by CityScapeLabs:
-GivenMeta_plots <-fread(file="data/GivenMeta_plots.csv", na.strings = "kA", dec = ",", data.table = FALSE,header=TRUE)
+#GivenMeta_plots <-fread(file="data/GivenMeta_plots.csv", na.strings = "kA", dec = ",", data.table = FALSE,header=TRUE,quote="")
+GivenMeta_plots<-read.csv(file="data/GivenMeta_plots.csv",header=TRUE,dec=",", na.strings = "kA")
 ###Extract relevant variables from the data
 MyGivenMeta_plots <- GivenMeta_plots[c(9,10,11,21,23,40,48,50,51),
                                      c("ID_plot","Long","Lat","Seal_500","Pop_500")]

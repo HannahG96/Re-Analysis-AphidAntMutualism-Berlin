@@ -19,6 +19,7 @@ expVar$plot.simple<-as.factor(expVar$plot.simple)#factorize plot category
 ######################
 #Check for correlation of predictors:
 ggpairs(expVar[,c("date","mean.temp","N_aphid","meanAnt.mean","Seal_500","plantStade")])
+ggpairs(expVar[,c("date","mean.temp","N_aphid","meanAnt.mean","plantStade")])
 #continuous/continuous variables-->Pearson?s correlation coefficient
 cor(expVar[, c("meanAnt.mean", "N_aphid", "mean.temp", "Seal_500")], method="pearson")
 #factor/continuous variables-->Spearman's rank correlation test (??)
@@ -56,12 +57,17 @@ Tending_Time<-merge(expVar, cum.task.allocation[which(cum.task.allocation[,"indv
 Group_reaction<-merge(expVar, Exp3a[, c("plot.simple", "plant", "date", "N_ant", "MAXREACT", "MAXATTACKS", 
                                         "MAXREACT_prop")], all=T)
 ###5.ANT AGGRESSIVITY
-Ant_aggressivity<-merge(expVar, Exp3b[, c("plot.simple", "plant", "date","context","aggr_score")],
+Ant_aggressivity<-merge(expVar, Exp3b[, c("plot.simple", "plant", "date","context","aggr_score","aggr")],
                         all=F)
 Ant_aggressivity$context<-as.factor(Ant_aggressivity$context)
 #reaction vs. no reaction
 Ant_aggressivity$reaction <- as.numeric(Ant_aggressivity$aggr_score >0)
 
+#plot full aggressivity score (1-7) along the urbanisation gradient
+ggplot(Ant_aggressivity,aes(x=as.factor(Seal_500),y=aggr,color=context))+
+  #geom_point()+#geom_jitter()+
+  #geom_smooth(method="lm")
+  geom_boxplot()
 #attack given reaction 
 # (excluding cases of no reaction -> replaced by NA)
 Ant_aggressivity$attack.given.react <- as.numeric(Ant_aggressivity$aggr_score ==2)
@@ -72,17 +78,50 @@ Ant_aggressivity$attack.given.react[Ant_aggressivity$aggr_score ==0] <- NA
 Ant_aggressivity$attack <- as.numeric(Ant_aggressivity$aggr_score ==2)
 
 #Excluded curious/tolerant behaviours: test for homogeneous distribution along urban gradient
-OUTs<-merge(expVar,OUTs[,c("plot.simple", "plant", "date","context","aggr_score")])
-OUTs$aggr_score<-1
-OUTS<-summaryBy(formula=aggr_score~plantPop+Seal_500,data=OUTs,FUN=sum)
-plot(aggr_score.sum~Seal_500,data=OUTS)
-hist(OUTS$aggr_score.sum)
-unsignif<-glm(aggr_score.sum ~ Seal_500,data=OUTS,family="poisson")
-summary(unsignif)#NOT SIGNIFICANT, p=0.1245  
+Exp3b_noReact<-merge(expVar,Exp3b_noReact[,c("plot.simple", "plant", "date","context","noReact")])
+OUTS<-summaryBy(formula=noReact~plantPop+Seal_500+date,data=Exp3b_noReact,FUN=sum)
+plot(noReact.sum~Seal_500,data=OUTS)
+#probability of aggressive/tolerant reaction vs. no reaction
+#First install Matrix package v1.6-2 (bc else glmmTMB not working...):
+#require(devtools)
+#install_version("Matrix", version = "1.6-2", repos = "http://cran.us.r-project.org")
+Exp3b_noReact$noReact<-as.factor(Exp3b_noReact$noReact)
+NOreaction.binom<-glmmTMB(noReact ~ context + date_s + N_aphid_s + Seal_500_s + 
+                        context:date_s + context:N_aphid_s + context:Seal_500_s +
+                        date_s:N_aphid_s + date_s:Seal_500_s +
+                        N_aphid_s:Seal_500_s + 
+                        (1|plantPop/date), #+(1|plot.simple),
+                        control=glmmTMBControl(optimizer=optim,
+                                               optArgs=list(method="BFGS")),
+                        family = binomial(),
+                        data= Exp3b_noReact)
+#model with glmer is a singular fit:                     
+#NOreaction.binom<-glmer(noReact ~ context + date_s + N_aphid_s + Seal_500_s + 
+                    #      context:date_s + context:N_aphid_s + context:Seal_500_s +
+                    #      date_s:N_aphid_s + date_s:Seal_500_s +
+                    #      N_aphid_s:Seal_500_s + 
+                    #      (1|plantPop/date),
+                    #      family = binomial,
+                    #      data=Exp3b_noReact,
+                    #        glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
 
-#Look at the model summary:
-#-->t-tests use Satterthwaite's method
-#summary(AntAtt) # not the same results as the partial R2 here...
+# Test residuals:
+plot(res <- simulateResiduals(NOreaction.binom)) # Some trend but not signif
+
+# Test fixed effects:
+#-->Wald Test
+#=coefficient estimates are expected to be normally distributed (z-test)
+summary(NOreaction.binom) # sealing, context and date are still signif
+
+# r2 values (using theoretical value):
+r.squaredGLMM(NOreaction.binom)
+#########marginal:0.336
+#########conditional:0.443
+# warning message
+
+# partial r2
+#r2beta(NOreaction.binom, method="sgv")-->not working for glmmTMB models
+#partR2(NOreaction.binom)alternative package 'partR2'-->not working for glmmTMB models
 
 ### 6.PROPORTION OF PARASITISM ###OUTS### 6.PROPORTION OF PARASITISM ####
 
