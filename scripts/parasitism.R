@@ -36,24 +36,25 @@ tmp = mutate(Ant_attendance, pres_paras= as.numeric(prop_paras>0))
 pres_paras <- glmmTMB(pres_paras ~ date_s + Seal_500_s
                       + date_s:Seal_500_s +  N_aphid_s 
                       + date_s:N_aphid_s + date_s:Seal_500_s + N_aphid_s:Seal_500_s
-                        +(1|plantPop))# + plot.simple),
+                      +(1|plantPop), # + plot.simple),
+                      data=tmp, family=binomial())
 
 
-# Hurdle model part 1
-tmp = mutate(Ant_attendance, pres_paras= as.numeric(prop_paras>0))
-pres_paras <- glmmTMB(pres_paras ~ date_s + Seal_500_s
-                      + date_s:Seal_500_s +  
-                        (1|plantPop + plot.simple),
-                      data= tmp,
-                      family= binomial())
-plot(pres_paras ~ Seal_500, tmp, col = date)
+# Hurdle model part 1 -BY MAUD
+#tmp = mutate(Ant_attendance, pres_paras= as.numeric(prop_paras>0))
+#pres_paras <- glmmTMB(pres_paras ~ date_s + Seal_500_s
+            #          + date_s:Seal_500_s +  
+            #            (1|plantPop + plot.simple),
+            #          data= tmp,
+            #          family= binomial())
+#plot(pres_paras ~ Seal_500, tmp, col = date)
 
 ##Test residuals:
 hist(residuals(pres_paras)) # bof
 res <- DHARMa::simulateResiduals(pres_paras)
 plot(res) # some trend but not significant
 
-plot(res) # looks not too horrible
+
 
 
 ## Test fixed effects:
