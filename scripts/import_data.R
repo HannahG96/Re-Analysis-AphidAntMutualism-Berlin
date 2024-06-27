@@ -24,7 +24,8 @@ activ_seq_raw <-fread(file="data/activity_sequence.csv", data.table = FALSE, che
   activ_seq_raw[which(activ_seq_raw[,1]=="E43"),1]<-"E44"#record name as which it appears in Exp1 table
   activ_seq_raw[which(activ_seq_raw[,1]=="E5"),1]<-"E4" #record name as which it appears in Exp1 table
 
-###Add column with simplified plot names
+###Add column with simplified plot name ("plot.simple") to data files
+  #-->each study location ("plot.simple") comprises an area of diameter~3-20m
 data<-list(General_plot, Met_plot_date, Met_plant, Exp1, Exp2, Exp3a, Exp3b)
 data_names<-c("General_plot", "Met_plot_date", "Met_plant", "Exp1", "Exp2", "Exp3a", "Exp3b")
 for(i in 1:7){
@@ -35,11 +36,12 @@ colnames(data[[i]])[1]<-"plot.simple"
 assign(data_names[i], data[[i]])}
 
 ###Load the data about the plots given by CityScapeLabs:
-#GivenMeta_plots <-fread(file="data/GivenMeta_plots.csv", na.strings = "kA", dec = ",", data.table = FALSE,header=TRUE,quote="")
 GivenMeta_plots<-read.csv(file="data/GivenMeta_plots.csv",header=TRUE,dec=",", na.strings = "kA")
+
 ###Extract relevant variables from the data
 MyGivenMeta_plots <- GivenMeta_plots[c(9,10,11,21,23,40,48,50,51),
                                      c("ID_plot","Long","Lat","Seal_500","Pop_500")]
+
 ###Format Seal_500 data for merging with my data files:
 colnames(MyGivenMeta_plots)[1] <- "plot.simple" #column name
 MyGivenMeta_plots$plot.simple <- sub("_","-",MyGivenMeta_plots$plot.simple ) # change "_"in "-"

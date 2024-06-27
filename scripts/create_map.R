@@ -1,6 +1,6 @@
 ### MASTER script for Urban gradient analysis
 
-library(rgdal)
+#library(rgdal) -->not available for newer Rversions
 library(stringr)
 library(ggplot2)
 library(ggspatial)
@@ -33,6 +33,7 @@ Sites.out<-sf::st_as_sf(MAP, coords=c("Long","Lat"))[c(10:24),]
 
 
 # import geodata:
+#PROBLEM: requires R package rgdal
 
 ## 56 plots of the cityscape labs
 total_plots <- readOGR(dsn = "data/geodata", layer ="Grassland_56plots_midpoints",

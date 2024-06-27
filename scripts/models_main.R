@@ -1,8 +1,6 @@
 ### MODELS ###
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#-->CHANGE COEFFS AND STATS IN TABLES!!!!!!!!!!!!!!!!!!!
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+##########################################################################################
 ### 1-A. APHID DENSITY ####
 #=nb of aphids/length of focal zone (mm)
 
@@ -14,7 +12,7 @@ Aph<-lmer(sqrt(N_aphid.mm) ~ date_s + meanAnt.mean_s + Seal_500_s +
             date_s:meanAnt.mean_s +
             date_s:Seal_500_s +
             meanAnt.mean_s:Seal_500_s + 
-            (1|plantPop), #+(1|plot.simple)
+            (1|plantPop),
           data=Aphid_density)#N=53
 
 #Look at diagnostics:
@@ -35,6 +33,7 @@ r.squaredGLMM(Aph)
 #Calculate partial R2 for each predictor (only fixed effects):
 r2beta(Aph, method="nsj")
 
+#######################################################
 ### 1-B. APHID DENSITY EXCLUDING OUTLIER PLOT: Nl-200 
 # Test effect of outlier plot with max sealing:
 sub_df <- Aphid_density[-which(Aphid_density$plot.simple == "Nl-200"),]
@@ -53,6 +52,7 @@ r.squaredGLMM(sub_Aph)
 #Calculate partial R2 for each predictor (only fixed effects):
 r2beta(sub_Aph, method="nsj")
 
+#############################################################################################
 ###2. Ant NUMBER: RESPONSE AS DECIMAL VARIABLE #####
 hist(Ant_attendance$meanAnt.mean)
 
@@ -63,7 +63,7 @@ hist(log(Ant_attendance$meanAnt.mean))
 Ant.nb<-lmer(log(meanAnt.mean)~date_s + N_aphid_s + Seal_500_s +  
                date_s:N_aphid_s + date_s:Seal_500_s +
                N_aphid_s:Seal_500_s +
-               (1|plantPop), #+(1|plot.simple), 
+               (1|plantPop),
                data=Ant_attendance)#N=53
 #Look at diagnostics:
 plot(Ant.nb)
@@ -85,16 +85,19 @@ r.squaredGLMM(Ant.nb)
 r2beta(Ant.nb, method="nsj")
 #-->partial Rsquared of sealing remains relatively high
 
+
+###############################################################################################
 ### 3-A. Ant ATTENDANCE: ANT-PER-APHID RATIO ####
 hist(Ant_attendance$AntperAphid.mean) # Not looking normal
-#library(bestNormalize)#-->this package masks boxcox() function
-#bestNormalize(Ant_attendance$AntperAphid.mean) #=> log10 transform
 
 # Fit LMER of log-transformed response:
+#-->log-transformed response to normalize data
+hist(log(Ant_attendance$AntperAphid.mean))
+
 AntAtt<-lmer(log(AntperAphid.mean) ~ date_s + N_aphid_s + Seal_500_s +  
                date_s:N_aphid_s + date_s:Seal_500_s +
                N_aphid_s:Seal_500_s +
-               (1|plantPop), #+(1|plot.simple),
+               (1|plantPop),
              data=Ant_attendance,
              control=lmerControl(optimizer="bobyqa",
                                  optCtrl=list(maxfun=2e5)))
@@ -108,7 +111,6 @@ plot(res) # ok for normality, but still a slight curved trend in residuals...
 #Look at the model summary:
 #-->t-tests use Satterthwaite's method
 summary(AntAtt) # not the same results as the partial R2 here...
-lmerTest::ranova(AntAtt) # Shows that the random effect does improve model.
 
 #Calculate the marginal (= fixed effect) and conditional (= fixed + random effects) r2 values:
 r.squaredGLMM(AntAtt)
@@ -118,6 +120,7 @@ r.squaredGLMM(AntAtt)
 #Calculate partial R2 for each predictor (only fixed effects):
 r2beta(AntAtt, method="nsj") 
 
+###############################################################################################
 ### 3-B. ANT ATTENDANCE: TENDING TIME #### 
 
 hist(Tending_Time$aphid_IA.sum)
@@ -125,7 +128,7 @@ hist(Tending_Time$aphid_IA.sum)
 # https://rcompanion.org/handbook/J_02.html
 
 #### BETA REGRESSIONS using the glmmTMB package:
-tmp <-  na.omit(Tending_Time) 
+tmp <-  na.omit(Tending_Time) #remove one NA value
 Tend.betareg <- glmmTMB(aphid_IA.sum ~ date_s + N_aphid_s + Seal_500_s + 
                           date_s:N_aphid_s + date_s:Seal_500_s +
                           N_aphid_s:Seal_500_s +
@@ -139,7 +142,6 @@ res <- DHARMa::simulateResiduals(Tend.betareg)
 plot(res) # looks good
 
 # Test fixed effects:
-car::Anova(Tend.betareg, type="III") # one way to test for significance (probably the best)
 #-->Wald test (z-test)
 summary(Tend.betareg) # another way which gives similar p-values
 
@@ -152,6 +154,8 @@ print(dw+geom_vline(xintercept=0,lty=2))
 
 # R squared: DOES NOT WORK with betaregression
 
+
+#############################################################################################
 # 4. Ant AGGRESSIVITY #####
 #=probability of an aggressive reaction (reaction score >0): aggressive (1) vs. avoidance (0)
 Ant_aggressivity$reaction<-as.factor(Ant_aggressivity$reaction)
@@ -159,25 +163,16 @@ Ant_aggressivity$reaction<-as.factor(Ant_aggressivity$reaction)
 # Fit GLMER:
 #Model1: aggressive (1) vs. avoidance (0)
 Ant_aggressivity$plot.simple<-as.factor(Ant_aggressivity$plot.simple)
-#-->GLMER model is a singular fit with new RANEF structure:
+
 reaction.binom<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
                         context:date_s + context:N_aphid_s + context:Seal_500_s +
                         date_s:N_aphid_s + date_s:Seal_500_s +
                         N_aphid_s:Seal_500_s + 
-                        (1|plantPop/date), #+(1|plot.simple),
+                        (1|plantPop/date),
                       family = binomial,
                       data=Ant_aggressivity,
                       glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
-#with 'plot.simple' as RANEF->%SEALING BECOMES UNSIGNIFICANT!!!!!!!!!!
-#reaction.binom<-glmmTMB(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
-               #             context:date_s + context:N_aphid_s + context:Seal_500_s +
-               #             date_s:N_aphid_s + date_s:Seal_500_s +
-               #             N_aphid_s:Seal_500_s + 
-               #             (1|plantPop/date)+(1|plot.simple),
-               #           control=glmmTMBControl(optimizer=optim,
-               #                                  optArgs=list(method="BFGS")),
-               #           family = binomial(),
-               #           data= Ant_aggressivity)
+
 # Test residuals:
 plot(res <- simulateResiduals(reaction.binom)) # Some trend but not signif
 
@@ -194,4 +189,83 @@ r.squaredGLMM(reaction.binom)
 
 # partial r2
 r2beta(reaction.binom, method="sgv")
+#-->gives a different marginal r2=0.154
+
+############################################################################################
+###5. ANT AGGRESSIVENESS: EXCLUDED DATA 
+#--> ants reacting with tolerance/curiosity and exploration to simulated attack
+#-->These "no reactions" were classified as failed experiments and excluded from analysis to
+#test ant aggressiveness along urbanisation gradient (N=47)
+
+#Test probability of aggressive/avoidance reaction vs. no reaction (curiousity/tolerance)
+#-->To justify this exclusion: test whether the likelihood of successful (aggressive/avoidance reaction)
+#vs. failed (curiosity/tolerance) experiment of simulated attack is evenly distributed 
+#along urbanisation gradient:
+NOreaction.binom<-glmmTMB(noReact ~ context + date_s + N_aphid_s + Seal_500_s + 
+                            context:date_s + context:N_aphid_s + context:Seal_500_s +
+                            date_s:N_aphid_s + date_s:Seal_500_s +
+                            N_aphid_s:Seal_500_s + 
+                            (1|plantPop/date),
+                          control=glmmTMBControl(optimizer=optim,
+                                                 optArgs=list(method="BFGS")),
+                          family = binomial(),
+                          data= Exp3b_noReact)
+
+# Test residuals:
+plot(res <- simulateResiduals(NOreaction.binom)) #OK
+
+# Test fixed effects:
+#-->Wald Test
+#=coefficient estimates are expected to be normally distributed (z-test)
+summary(NOreaction.binom) # date is signif
+
+# r2 values (using theoretical value):
+r.squaredGLMM(NOreaction.binom)
+#########marginal:0.336
+#########conditional:0.443
+# warning message
+
+# partial r2
+#r2beta(NOreaction.binom, method="sgv")-->not working for glmmTMB models
+#partR2(NOreaction.binom)alternative package 'partR2'-->not working for glmmTMB models
+
+
+############## REVISIONS: ADDITIONAL ANALYSES TO TEST ROBUSTNESS OF RESULTS ############
+#-->we preferred analysing trends in our response variables using a continuous urban variable (%sealing)
+#-->reviewers suggested categorization of our urban variable, however this is not recommendable as our data
+#is not evenly distributed along %sealing and ecologically significant categories can not be made
+#### AIM: #### 
+#check robustness of some of our analyses by removing the most urban plot
+
+#ANT AGGRESSIVENESS
+new.dat<-Ant_aggressivity[-which(Ant_aggressivity$plot.simple=="Nl-200"),]#23 obs removed
+# Fit GLMER:
+#Model1: aggressive (1) vs. avoidance (0)
+new.dat$plot.simple<-as.factor(new.dat$plot.simple)
+
+reaction.binom_new<-glmer(reaction ~ context + date_s + N_aphid_s + Seal_500_s + 
+                        context:date_s + context:N_aphid_s + context:Seal_500_s +
+                        date_s:N_aphid_s + date_s:Seal_500_s +
+                        N_aphid_s:Seal_500_s + 
+                        (1|plantPop/date),
+                        family = binomial,
+                      data=new.dat,
+                      glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+
+# Test residuals:
+plot(res <- simulateResiduals(reaction.binom_new)) # good
+
+# Test fixed effects:
+#-->Wald Test
+#=coefficient estimates are expected to be normally distributed (z-test)
+summary(reaction.binom_new) # sealing and context are still signif, date is marginally signif
+
+# r2 values:
+r.squaredGLMM(reaction.binom_new)
+#########marginal:0.212
+#########conditional:0.347
+# warning message
+
+# partial r2
+r2beta(reaction.binom_new, method="sgv")
 #-->gives a different marginal r2=0.154

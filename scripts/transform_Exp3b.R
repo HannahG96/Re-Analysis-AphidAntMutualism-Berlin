@@ -25,7 +25,7 @@ Exp3b[which(is.na(Exp3b[,"context"])==T),"context"]<-"other behaviour"
 ###Create a column indicating the aggressive score of the irritated ant
 Exp3b$aggr_score<-NA
 Exp3b[which(Exp3b[,"aggr"]==1),"aggr_score"]<-0 #avoidance
-Exp3b[which(Exp3b[,"aggr"]==4),"aggr_score"]<-0 #avoidance=aggressive pose without approaching the needle
+Exp3b[which(Exp3b[,"aggr"]==4),"aggr_score"]<-0 #avoidance=alerted pose without approaching the needle
 Exp3b[which(Exp3b[,"aggr"]>=5),"aggr_score"]<-1 #attack by bite
 Exp3b[which(Exp3b[,"JUMP"]==1),"aggr_score"]<-2 #attack by jump
 

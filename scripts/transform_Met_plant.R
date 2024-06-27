@@ -1,6 +1,6 @@
 ###MET_PLANT###
 #What is relevant?
-#-->includes plantStade & parasitism info
+#-->includes phenological stage & parasitism information
 
 ###Make date information understandable for R:
 Met_plant$date <- as.Date (Met_plant$date , format = "%d.%m.%Y")
@@ -13,4 +13,4 @@ Met_plant$plantStade[(Met_plant$stade4==1)]<-4
 Met_plant<-Met_plant[,-c(8:11)]
 
 ###Convert %parasitism in proportion of parasitism (latter will be the response variable):
-Met_plant$Prop_paras<-Met_plant$prop_paras / 100
+#Met_plant$Prop_paras<-Met_plant$prop_paras / 100

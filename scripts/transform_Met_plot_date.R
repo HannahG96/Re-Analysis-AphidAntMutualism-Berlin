@@ -2,7 +2,7 @@
 #What is relevant?
 #-->includes temperature info
 
-###Remove empty columns (=I did not fill them out):
+###Remove empty columns:
 Met_plot_date<-Met_plot_date[,-c(17,18)]
 
 ###Transform column date into date object for R:

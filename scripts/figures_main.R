@@ -181,6 +181,7 @@ ants<-Aphid_density[,c("date","Seal_500","meanAnt.mean")]
 ants<-cbind(data.frame(response=rep("Ant number",nrow(Aphid_density))),ants)
 colnames(ants)<-c("response","date","Seal_500","value")
 newd<-rbind(newd,aphids,ants)
+
 dummy<-data.frame(response="Aphid density\n(nb./mm)",date=Aphid_density[1,"date"],
                   Seal_500=Aphid_density[1,"Seal_500"],value=5)
 #Plot the data:
@@ -237,16 +238,18 @@ newd$predicted <- predict(Tend.betareg,
 
 #Open graphical device
 pdf(file="figures/tending_time.pdf",         # File name
-    width = 5, height = 4, # Width and height in inches
+    width = 6, height = 4, # Width and height in inches
     bg = "white",          # Background color
     colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
 
-ggplot(data = Tending_Time, aes(date, aphid_IA.sum)) +
+ggplot(data = Tending_Time, aes(x=date, y=aphid_IA.sum, color=Seal_500)) +
   geom_point(size=1.75) +
   theme_minimal()+
   geom_smooth(data=newd, aes(x=date, y=predicted), 
               method = "glm", formula = y ~ x, 
               method.args=list(family="beta_family"), se = FALSE, color="black") +
+  scale_color_viridis(option="mako", begin=0.1, end=0.9, direction=-1)+
+  labs(color="% Sealing")+
   theme(legend.title=element_text(size=10, face="bold", color="gray21"),
         axis.title.y=element_text(size=10, face="bold", color="gray21"),
         axis.title.x=element_text(size=10, face="bold", color="gray21"),
@@ -317,75 +320,13 @@ ggplot(plotTasks, aes(fill=Behaviour, y=Time_prop, x=Seal_500))+
 # close the graphical device:
 dev.off() 
 
-###5. VISUALIZE PARASITISM IN RELATION TO SURVIVAL/EXTINCTION OF COLONY
-#Use of the maximal proportion of parasitism per aphid colony
 
-#Prepare data:
-P4$survival<-as.character(P4$survival)
-P4[which(P4[,"survival"]=="1"),"survival"]<-"survived"
-P4[which(P4[,"survival"]=="0"),"survival"]<-"extinct"
-P4[which(is.na(P4[,"survival"])==T),"survival"]<-"unknown\noutcome"
-P4$survival<-factor(P4$survival,level=c("survived","extinct","unknown\noutcome"))
-P4$is.paras<-factor(P4$is.paras, levels=c(1,0,NA))
-P4[which(is.na(P4[,"prop_paras.cat"])==TRUE),"prop_paras.cat"]<-"no data"
-
-#open graphical device:
-#-->2 column width
-pdf(file="figures/parasitism.pdf",         # File name
-    width = 5, height = 4, # Width and height in inches
-    bg = "white",          # Background color
-    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
-
-ggplot(P4, aes(x=prop_paras.cat, fill=survival))+
-  theme_minimal()+
-  geom_bar(position="stack", width = 0.75, color="black")+
-  scale_fill_manual("", values=c("white","#90A4ADFF","lightgrey"),
-                    breaks=c("survived","extinct","unknown\noutcome"))+
-  scale_y_continuous(breaks=c(1:25))+
-  theme(axis.text.x=element_text(angle=20,face="bold", color="#90A4ADFF",size=11),
-        axis.text.y=element_text(face="bold", color="#90A4ADFF"),
-        axis.title.y=element_text(face="bold"),
-        axis.title.x=element_text(face="bold"),
-        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
-        panel.grid.minor = element_blank())+
-  ylab("Count")+
-  xlab("Proportion of mummies")
-
-# close the graphical device:
-dev.off() 
 ##############################################################################
 #Values for writing
 
 #Temperature
 mean(Ant_aggressivity$mean.temp)#22.66531
 range(Ant_aggressivity$mean.temp)#15.36667 36.36667
-ggplot(Ant_aggressivity, aes(x=as.factor(Seal_500), y=mean.temp))+
-  geom_boxplot()
-#Plot temperature along the urbanisation gradient:
-#open graphical device:
-#-->1.5 column width
-pdf(file="figures/temperature.pdf",         # File name
-    width = 5, height = 4, # Width and height in inches
-    bg = "white",          # Background color
-    colormodel = "cmyk" )   # Color model (cmyk is required for most publications)
-
-#Produce plot based on predicted data:
-
-ggplot(data = Ant_aggressivity, mapping = aes(Seal_500, mean.temp)) +
-  geom_point(size=1.75, color="black") +
-  theme_minimal()+
-  #geom_smooth(method = "lm", se = FALSE, color="black") +
-  theme(legend.title=element_text(size=10, face="bold", color="gray21"),
-        axis.title.y=element_text(size=10, face="bold", color="gray21"),
-        axis.title.x=element_text(size=10, face="bold", color="gray21"),
-        panel.grid.major = element_line(colour="lightgrey", linetype="dashed"), 
-        panel.grid.minor = element_blank(),
-        legend.position=c(0.85,0.2)) +
-  xlab("% Sealing") +
-  ylab("Temperature (?C)")
-
-# close the graphical device:
-dev.off() 
 
 #Aphid counts
 sum(Aphid_density$N_aphid)#4001
@@ -395,21 +336,22 @@ sum(Aphid_density$meanAnt.mean)#693.5473
 
 #Ant-over-aphid ratio
 range(Ant_attendance$AntperAphid.mean) #0.0553719 0.9625000
-a<-Ant_attendance[which(Ant_attendance[,"N_aphid"]<15),]
+a<-Ant_attendance[which(Ant_attendance[,"N_aphid"]<15),]#observations of tiny (N=15) aphid colonies
 
-Aphid_density[which(Aphid_density[,"date_s"]<= 0.63),"date"]
-Aphid_density[which(Aphid_density[,"date_s"]< -0.5),"date"]
-Aphid_density[which(Aphid_density[,"date_s"]>0.63),"date"]
+#Season
+Aphid_density[which(Aphid_density[,"date_s"]<= 0.63),"date"]#begin of August
+Aphid_density[which(Aphid_density[,"date_s"]< -0.5),"date"]#mid of August
+Aphid_density[which(Aphid_density[,"date_s"]>0.63),"date"]#end of August
 
 #Tending time
 mean(Tending_Time$aphid_IA.sum, na.rm=TRUE)
 
 #Aggressivity
-length(which(Ant_aggressivity[,"reaction"]==1))/332 #0.8283133
+length(which(Ant_aggressivity[,"reaction"]==1))/332 #0.8283133 =proportion of aggressively reacting ants relative to all tested ants
 a<-Ant_aggressivity[which(Ant_aggressivity[,"context"]=="tending aphids"),]
-length(which(a[,"reaction"]==1))/164#0.8963415
+length(which(a[,"reaction"]==1))/164#0.8963415 =>proportion of aggressively reacting caretakers relative to all tested caretakers
 b<-Ant_aggressivity[which(Ant_aggressivity[,"context"]=="other behaviour"),]
-length(which(b[,"reaction"]==1))/168#0.7619048
+length(which(b[,"reaction"]==1))/168#0.7619048 =>proportion of aggressively reacting ants doing other tasks relative to all tested ants doing other stuff
 
 ##############################################################################
 #Manuscript Revisions: additional figures for supplementary material
