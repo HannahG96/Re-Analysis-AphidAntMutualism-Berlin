@@ -1,5 +1,5 @@
 # Assessing changes in an ant-aphid mutualism across urban grasslands 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7919409.svg)](https://doi.org/10.5281/zenodo.7919409)
+[![DOI](https://zenodo.org/badge/348417255.svg)](https://zenodo.org/doi/10.5281/zenodo.7907769)
 
 This repository contains the data and R code to analyse changes in aphid and ant populations and behaviour along a gradient of urbanisation in Berlin, Germany. 
 This is a work in progress associated to a publication in preparation.
